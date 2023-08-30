@@ -25,6 +25,7 @@ public class Executor<C extends GameContext, R extends GameRules> extends GameSt
             enterState();
             ActionReturn result = currentState.execute();
             if (result != ActionReturn.OK) {
+                System.out.println(currentState.getName()+" returned: "+ result + " and exited");
                 return result;
             }
             exitState();

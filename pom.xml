@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>it.vegas</groupId>
-    <artifactId>SlotFramework</artifactId>
+    <artifactId>GameFramework</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>SlotFramework</name>
-    <description>SlotFramework</description>
+    <name>GameFramework</name>
+    <description>GameFramework is a state machine builder library for games</description>
     <properties>
         <java.version>17</java.version>
     </properties>
