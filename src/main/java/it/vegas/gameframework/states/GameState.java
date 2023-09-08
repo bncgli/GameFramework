@@ -14,7 +14,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @Slf4j
 public class GameState<C extends GameContext> {
 
@@ -23,6 +22,14 @@ public class GameState<C extends GameContext> {
     protected C context;
     protected List<GameStateCondition<C>> nextGameStates;
     protected GameStateAction<C> action;
+
+    public GameState() {
+        this.name = "GameState";
+        this.description = "";
+        this.context = null;
+        this.nextGameStates = new ArrayList<>();
+        this.action = (self) -> log.warn("Unimplemented action in {}", self);;
+    }
 
     public GameState(String name, String description, C context, List<GameStateCondition<C>> nextGameStates, GameStateAction<C> action) {
         this.name = name;
