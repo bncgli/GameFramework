@@ -103,24 +103,24 @@ public class StateMachineBuilder {
 
         /**
          * Sets the Action of the GameState
-         * @param action The new action of the GameState it can be also added as a lambda function with one parameter (the referring GameState) (self)-> code 
+         * @param action The new action of the GameState it can be also added as a lambda function with one parameter (the referring GameState) (self)-> code
          * @return Returns self
          */
         public Builder<C> setAction(GameStateAction<C> action) {
             this.action = action;
             return this;
         }
-        
+
         /**
          * Sets the given GameState as the builded one;
-         * @param state The new GameState 
+         * @param state The new GameState
          * @return Returns self
          */
         private Builder<C> setGameState(GameState<C> state) {
             this.gameState = state;
             return this;
         }
-        
+
         /**
          * Stores the conditions to new states or "branches"
          * as a list.
@@ -145,7 +145,7 @@ public class StateMachineBuilder {
 
         /**
          * Adds a single GameStateCondition with a given gameState
-         * that is always true. Useful for a sequence of states 
+         * that is always true. Useful for a sequence of states
          * without branching
          * @param gameState The given GameState
          * @return returns self
@@ -155,6 +155,7 @@ public class StateMachineBuilder {
             child.setGameState(gameState);
             nextGameStates=List.of(
                     new GameStateCondition<>(
+                            "",
                             (s) -> true,
                             child.compile()
                     )
@@ -163,7 +164,7 @@ public class StateMachineBuilder {
         }
 
         /**
-         * Adds a single GameStateCondition that is always true. 
+         * Adds a single GameStateCondition that is always true.
          * Useful for a sequence of states without branching
          * @return returns self
          */
@@ -205,7 +206,7 @@ public class StateMachineBuilder {
             }
         }
 
-        
+
     }
 
     /**

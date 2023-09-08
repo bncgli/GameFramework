@@ -18,13 +18,20 @@ import java.util.Random;
 class gameframeworkapptest {
 
     private static class TestContext extends GameContext{
-        public boolean branchingTest;
+        public int branchingTest;
     }
 
     @Test
     void buildTest() {
         TestContext c = new TestContext();
         GameStateAction<TestContext> action = (s) -> System.out.println("Executing " + s.getName()+ " current context status: "+s.getContext().branchingTest);
+
+        GameState<TestContext> commonEnd = StateMachineBuilder.builder(c)
+                .newGameState()
+                .setName("Common End")
+                .setAction(action)
+                .build();
+
         GameState<TestContext> testMachine = StateMachineBuilder.builder(c)
                 .newGameState()
                 .setName("Fase 1")
@@ -33,41 +40,88 @@ class gameframeworkapptest {
                 .setNextGameState()
                 .setName("Fase 2")
                 .setAction((s)->{
-                    s.getContext().branchingTest = new Random().nextBoolean();
+                    s.getContext().branchingTest = new Random().nextInt(1,4);
                     System.out.println("Branching value: "+s.getContext().branchingTest);
                 })
                 .setBranchingStates(
                         new GameStateCondition<>(
-                                (s) -> s.getContext().branchingTest,
+                                "state = 1",
+                                (s) -> s.getContext().branchingTest == 1,
                                 StateMachineBuilder.builder(c)
                                         .newGameState()
-                                        .setName("Branch 1 - Fase 1")
+                                        .setName("Branch 1.1")
                                         .setAction(action)
 
                                         .setNextGameState()
-                                        .setName("Branch 1 - Fase 2")
+                                        .setName("Branch 1.2")
                                         .setAction(action)
+
+                                        .setNextGameState(commonEnd)
                                         .build()
                         ),
                         new GameStateCondition<>(
-                                (s) -> !s.getContext().branchingTest,
+                                "state = 2",
+                                (s) -> s.getContext().branchingTest == 2,
                                 StateMachineBuilder.builder(c)
                                         .newGameState()
-                                        .setName("Branch 2 - Fase 1")
+                                        .setName("Branch 2.1")
                                         .setAction(action)
 
                                         .setNextGameState()
-                                        .setName("Branch 2 - Fase 2")
+                                        .setName("Branch 2.2")
                                         .setAction(action)
+                                        .setBranchingStates(
+                                                new GameStateCondition<>(
+                                                        "state = 1",
+                                                        (s) -> s.getContext().branchingTest == 1,
+                                                        StateMachineBuilder.builder(c)
+                                                                .newGameState()
+                                                                .setName("Branch 2.2.1.1")
+                                                                .setAction(action)
+
+                                                                .setNextGameState()
+                                                                .setName("Branch 2.2.1.2")
+                                                                .setAction(action)
+                                                                .build()
+                                                ),
+                                                new GameStateCondition<>(
+                                                        "state = 2",
+                                                        (s) -> s.getContext().branchingTest == 2,
+                                                        StateMachineBuilder.builder(c)
+                                                                .newGameState()
+                                                                .setName("Branch 2.2.2.1")
+                                                                .setAction(action)
+
+                                                                .setNextGameState()
+                                                                .setName("Branch 2.2.2.2")
+                                                                .setAction(action)
+                                                                .build()
+                                                )
+                                        )
+                        ),
+                        new GameStateCondition<>(
+                                "state = 3",
+                                (s) -> s.getContext().branchingTest == 3,
+                                StateMachineBuilder.builder(c)
+                                        .newGameState()
+                                        .setName("Branch 3.1")
+                                        .setAction(action)
+
+                                        .setNextGameState()
+                                        .setName("Branch 3.2")
+                                        .setAction(action)
+
+                                        .setNextGameState(commonEnd)
                                         .build()
                         )
                 );
 
 
 
-        Navigator.printMachine(testMachine);
+//        Navigator.printMachine(testMachine);
+        Navigator.GenerateMachineGraph(testMachine, null);
 
-        Executor<TestContext> exec = new Executor<>(testMachine);
-        exec.execute();
+//        Executor<TestContext> exec = new Executor<>(testMachine);
+//        exec.execute();
     }
 }
