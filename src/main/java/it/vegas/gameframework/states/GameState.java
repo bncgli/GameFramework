@@ -1,31 +1,39 @@
 package it.vegas.gameframework.states;
 
 import it.vegas.gameframework.contexts.GameContext;
-import it.vegas.gameframework.enums.ActionReturn;
-import it.vegas.gameframework.rules.GameRules;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
+import it.vegas.gameframework.states.library.structures.GameStateCondition;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class GameState<C extends GameContext, R extends GameRules> {
+@Slf4j
+public class GameState<C extends GameContext> {
 
-    private String name = "GameState";
-    private String description = "";
-    private C context;
-    private R rules;
-    private GameState<C, R> nextGameState;
-    private GameStateAction<C, R> action = (self, context, rules) -> {
-        System.out.println("Unimplemented");
-        return ActionReturn.OK;
-    };
+    protected String name = "GameState";
+    protected String description = "";
+    protected C context;
+    protected List<GameStateCondition<C>> nextGameStates;
+    protected GameStateAction<C> action;
 
-    public ActionReturn execute() {
-        return action.execute(this, context, rules);
+    public GameState(String name, String description, C context, List<GameStateCondition<C>> nextGameStates, GameStateAction<C> action) {
+        this.name = name;
+        this.description = description;
+        this.context = context;
+        this.nextGameStates = nextGameStates;
+        this.action = action;
+    }
+
+    public void execute() {
+        action.execute(this);
     }
 
     @Override
@@ -34,9 +42,22 @@ public class GameState<C extends GameContext, R extends GameRules> {
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", context=" + context +
-                ", rules=" + rules +
-                ", nextGameState=" + (nextGameState != null ? nextGameState.getName() : "null") +
+                ", nextGameState=" + (nextGameStates.stream().map(GameStateCondition::toString).toList()) +
                 ", action=" + action +
                 '}';
+    }
+
+    public List<GameState<C>> getMachineAsList() {
+        return getMachineAsList(new ArrayList<>());
+    }
+
+    protected List<GameState<C>> getMachineAsList(List<GameState<C>> visited) {
+        visited.add(this);
+        for (GameStateCondition<C> c : nextGameStates) {
+            if (!visited.contains(c.getResultState())) {
+                visited.addAll(c.getResultState().getMachineAsList(visited));
+            }
+        }
+        return visited;
     }
 }

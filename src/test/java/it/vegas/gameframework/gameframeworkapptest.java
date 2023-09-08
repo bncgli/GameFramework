@@ -1,67 +1,73 @@
 package it.vegas.gameframework;
 
-import it.vegas.gameframework.builders.StateMachineBuilder;
+
+import it.vegas.gameframework.builder.StateMachineBuilder;
 import it.vegas.gameframework.contexts.GameContext;
-import it.vegas.gameframework.enums.ActionReturn;
 import it.vegas.gameframework.executors.Executor;
-import it.vegas.gameframework.rules.GameRules;
+import it.vegas.gameframework.navigators.Navigator;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
+import it.vegas.gameframework.states.library.structures.GameStateCondition;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestContext;
+
+import java.util.Random;
 
 @SpringBootTest
 class gameframeworkapptest {
 
-    @Test
-    void contextLoads() {
-        GameContext c = new GameContext();
-        GameRules r = new GameRules();
-        GameStateAction<GameContext, GameRules> a = (self, context, rules)->{
-            System.out.println(self.getName());
-            return ActionReturn.OK;
-        };
-        GameState<GameContext,GameRules> s = StateMachineBuilder.builder(c, r)
-                .newState()
-                .setName("SottoFase1")
-                .setAction(a)
-
-                .goToNewState()
-                .setName("SottoFase2")
-                .setAction(a)
-
-                .goToNewState()
-                .setName("SottoFase3")
-                .setAction(a)
-                .build();
-
-        System.out.println(s.toString());
-        System.out.println(s.getNextGameState().toString());
-        System.out.println(s.getNextGameState().getNextGameState().toString());
-
-        Executor<GameContext,GameRules> e = new Executor<>();
-        e.setStartingState(s);
-
-        GameState<GameContext,GameRules> s1 = StateMachineBuilder.builder(c, r)
-                .newState()
-                .setName("Fase1")
-                .setAction(new GameRules.testRule<>())
-
-                .goToState(e)
-                .setName("Fase2")
-
-                .goToNewState()
-                .setName("Fase3")
-                .setAction(a)
-                .build();
-
-        System.out.println(s1.toString());
-        System.out.println(s1.getNextGameState().toString());
-        System.out.println(s1.getNextGameState().getNextGameState().toString());
-
-        Executor<GameContext, GameRules> d = new Executor<>();
-        d.setStartingState(s1);
-        d.execute();
+    private static class TestContext extends GameContext{
+        public boolean branchingTest;
     }
 
+    @Test
+    void buildTest() {
+        TestContext c = new TestContext();
+        GameStateAction<TestContext> action = (s) -> System.out.println("Executing " + s.getName()+ " current context status: "+s.getContext().branchingTest);
+        GameState<TestContext> testMachine = StateMachineBuilder.builder(c)
+                .newGameState()
+                .setName("Fase 1")
+                .setAction(action)
+
+                .setNextGameState()
+                .setName("Fase 2")
+                .setAction((s)->{
+                    s.getContext().branchingTest = new Random().nextBoolean();
+                    System.out.println("Branching value: "+s.getContext().branchingTest);
+                })
+                .setBranchingStates(
+                        new GameStateCondition<>(
+                                (s) -> s.getContext().branchingTest,
+                                StateMachineBuilder.builder(c)
+                                        .newGameState()
+                                        .setName("Branch 1 - Fase 1")
+                                        .setAction(action)
+
+                                        .setNextGameState()
+                                        .setName("Branch 1 - Fase 2")
+                                        .setAction(action)
+                                        .build()
+                        ),
+                        new GameStateCondition<>(
+                                (s) -> !s.getContext().branchingTest,
+                                StateMachineBuilder.builder(c)
+                                        .newGameState()
+                                        .setName("Branch 2 - Fase 1")
+                                        .setAction(action)
+
+                                        .setNextGameState()
+                                        .setName("Branch 2 - Fase 2")
+                                        .setAction(action)
+                                        .build()
+                        )
+                );
+
+
+
+        Navigator.printMachine(testMachine);
+
+        Executor<TestContext> exec = new Executor<>(testMachine);
+        exec.execute();
+    }
 }
