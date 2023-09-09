@@ -36,17 +36,16 @@ public class Executor<C extends GameContext> extends GameState<C> {
      * Execute overrides the GameState method.
      * This method iters the state machine until the end of the GameState
      * or until a GameState returns an error
-     * @return
      */
     @Override
     public void execute() {
         currentState = startingState;
         try {
             while (currentState != null) {
-                log.info("Entering gameState: {}", currentState);
+                log.info("Entering gameState: {}", currentState.getName());
                 currentState.execute();
-                log.info("Exiting gameState: {}", currentState);
-                currentState = getNextGameState(currentState);
+                log.info("Exiting gameState: {}", currentState.getName());
+                currentState = currentState.getNextGameState();
             }
         } catch (Exception e) {
             log.error(
@@ -57,16 +56,5 @@ public class Executor<C extends GameContext> extends GameState<C> {
             );
         }
     }
-
-    protected GameState<C> getNextGameState(GameState<C> state) {
-        List<GameStateCondition<C>> gameStateConditions = state.getNextGameStates();
-        for (GameStateCondition<C> c : gameStateConditions) {
-            if (c.getExpression(state)) {
-                return c.getResultState();
-            }
-        }
-        return null;
-    }
-
 
 }

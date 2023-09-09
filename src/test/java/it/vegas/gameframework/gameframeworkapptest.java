@@ -17,14 +17,14 @@ import java.util.Random;
 @SpringBootTest
 class gameframeworkapptest {
 
-    private static class TestContext extends GameContext{
+    private static class TestContext extends GameContext {
         public int branchingTest;
     }
 
     @Test
     void buildTest() {
         TestContext c = new TestContext();
-        GameStateAction<TestContext> action = (s) -> System.out.println("Executing " + s.getName()+ " current context status: "+s.getContext().branchingTest);
+        GameStateAction<TestContext> action = (s) -> System.out.println("Executing " + s.getName() + " current context status: " + s.getContext().branchingTest);
 
         GameState<TestContext> commonEnd = StateMachineBuilder.builder(c)
                 .newGameState()
@@ -39,9 +39,9 @@ class gameframeworkapptest {
 
                 .setNextGameState()
                 .setName("Fase 2")
-                .setAction((s)->{
-                    s.getContext().branchingTest = new Random().nextInt(1,4);
-                    System.out.println("Branching value: "+s.getContext().branchingTest);
+                .setAction((s) -> {
+                    s.getContext().branchingTest = new Random().nextInt(1, 4);
+                    System.out.println("Branching value: " + s.getContext().branchingTest);
                 })
                 .setBranchingStates(
                         new GameStateCondition<>(
@@ -82,6 +82,8 @@ class gameframeworkapptest {
                                                                 .setNextGameState()
                                                                 .setName("Branch 2.2.1.2")
                                                                 .setAction(action)
+
+                                                                .setNextGameState(commonEnd)
                                                                 .build()
                                                 ),
                                                 new GameStateCondition<>(
@@ -95,6 +97,8 @@ class gameframeworkapptest {
                                                                 .setNextGameState()
                                                                 .setName("Branch 2.2.2.2")
                                                                 .setAction(action)
+
+                                                                .setNextGameState(commonEnd)
                                                                 .build()
                                                 )
                                         )
@@ -117,11 +121,10 @@ class gameframeworkapptest {
                 );
 
 
-
 //        Navigator.printMachine(testMachine);
-        Navigator.GenerateMachineGraph(testMachine, null);
+//        Navigator.GenerateMachineGraph(testMachine, 100, "graph2");
 
-//        Executor<TestContext> exec = new Executor<>(testMachine);
-//        exec.execute();
+        Executor<TestContext> exec = new Executor<>(testMachine);
+        exec.execute();
     }
 }

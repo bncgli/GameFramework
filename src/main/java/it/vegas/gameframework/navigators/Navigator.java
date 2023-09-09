@@ -14,6 +14,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Navigator {
 
@@ -46,17 +47,17 @@ public class Navigator {
         }
     }
 
-    public static <C extends GameContext> void GenerateMachineGraph(GameState<C> start, Integer branchSpacing) {
+    public static <C extends GameContext> void GenerateMachineGraph(GameState<C> start, Integer branchSpacing, String filename) {
         DefaultDirectedGraph<String, ConditionEdge> graph = new DefaultDirectedGraph<>(ConditionEdge.class);
         graph = getMachineGraph(start, graph);
 
         JGraphXAdapter<String, ConditionEdge> graphAdapter = new JGraphXAdapter<String, ConditionEdge>(graph);
         mxHierarchicalLayout layout = new mxHierarchicalLayout(graphAdapter);
-        layout.setIntraCellSpacing((branchSpacing != null) ? branchSpacing : 200);
+        layout.setIntraCellSpacing((branchSpacing != null && branchSpacing > 100) ? branchSpacing : 100);
         layout.execute(graphAdapter.getDefaultParent());
 
         BufferedImage image = mxCellRenderer.createBufferedImage(graphAdapter, null, 3, Color.WHITE, true, null);
-        File imgFile = new File("graph.png");
+        File imgFile = new File((!Objects.equals(filename, "")) ? filename + ".png" : "graph.png");
         try {
             ImageIO.write(image, "PNG", imgFile);
         } catch (IOException e) {

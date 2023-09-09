@@ -43,6 +43,21 @@ public class GameState<C extends GameContext> {
         action.execute(this);
     }
 
+    /**
+     * Iters all the gamestateconditions and return the game state of
+     * the FIRST game state condition returning TRUE
+     * @return The gameState with the condition that returned true
+     */
+    public GameState<C> getNextGameState() {
+        List<GameStateCondition<C>> gameStateConditions = nextGameStates;
+        for (GameStateCondition<C> c : gameStateConditions) {
+            if (c.getExpression(this)) {
+                return c.getResultState();
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return "GameState{" +

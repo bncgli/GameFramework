@@ -36,8 +36,7 @@ public class StateMachineBuilder {
          * @return Returns a builder class to create the state machine
          */
         public Builder<C> newGameState(GameState<C> gameState) {
-            Builder<C> child = new Builder<>(context, null);
-            child.setGameState(gameState);
+            Builder<C> child = new Builder<>(gameState, context, null);
             return child;
         }
 
@@ -62,8 +61,8 @@ public class StateMachineBuilder {
         private GameState<C> gameState;
         private final Builder<C> parent;
 
-        public Builder(C context, Builder<C> parent) {
-            this.gameState = new GameState<>();
+        public Builder(GameState<C> gameState, C context, Builder<C> parent) {
+            this.gameState = gameState;
             this.gameState.setContext(context);
             this.parent = parent;
         }
@@ -158,7 +157,7 @@ public class StateMachineBuilder {
          * @return returns self
          */
         public Builder<C> setNextGameState(GameState<C> gameState) {
-            Builder<C> child = new Builder<>(this.gameState.getContext(), this);
+            Builder<C> child = new Builder<>(gameState, this.gameState.getContext(), this);
             child.setGameState(gameState);
             this.gameState.setNextGameStates(
                     List.of(
@@ -196,7 +195,6 @@ public class StateMachineBuilder {
                 return gameState;
             }
         }
-
 
     }
 
