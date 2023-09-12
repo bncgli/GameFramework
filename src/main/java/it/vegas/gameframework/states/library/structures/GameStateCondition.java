@@ -2,10 +2,8 @@ package it.vegas.gameframework.states.library.structures;
 
 import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.states.GameState;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Getter
 @Setter

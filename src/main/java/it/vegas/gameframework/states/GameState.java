@@ -4,7 +4,6 @@ import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +16,8 @@ import java.util.List;
 @Slf4j
 public class GameState<C extends GameContext> {
 
-    protected String name = "GameState";
-    protected String description = "";
+    protected String name;
+    protected String description;
     protected C context;
     protected List<GameStateCondition<C>> nextGameStates;
     protected GameStateAction<C> action;
@@ -28,7 +27,7 @@ public class GameState<C extends GameContext> {
         this.description = "";
         this.context = null;
         this.nextGameStates = new ArrayList<>();
-        this.action = (self) -> log.warn("Unimplemented action in {}", self);;
+        this.action = (self) -> log.warn("Unimplemented action in {}", self);
     }
 
     public GameState(String name, String description, C context, List<GameStateCondition<C>> nextGameStates, GameStateAction<C> action) {

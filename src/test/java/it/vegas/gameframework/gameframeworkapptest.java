@@ -3,14 +3,13 @@ package it.vegas.gameframework;
 
 import it.vegas.gameframework.builder.StateMachineBuilder;
 import it.vegas.gameframework.contexts.GameContext;
-import it.vegas.gameframework.executors.Executor;
+import it.vegas.gameframework.states.executors.Executor;
 import it.vegas.gameframework.navigators.Navigator;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestContext;
 
 import java.util.Random;
 
@@ -122,7 +121,7 @@ class gameframeworkapptest {
 
 
 //        Navigator.printMachine(testMachine);
-//        Navigator.GenerateMachineGraph(testMachine, 100, "graph2");
+        Navigator.GenerateMachineGraph(testMachine, 100, "graph3");
 
         Executor<TestContext> exec = new Executor<>(testMachine);
         exec.execute();

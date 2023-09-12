@@ -2,6 +2,8 @@ package it.vegas.gameframework.contexts;
 
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
+
 
 /**
  * GameContext contains all the data of the game,
@@ -9,6 +11,6 @@ import org.springframework.stereotype.Component;
  * class references from here.
  */
 @Component
-public class GameContext {
+public class GameContext implements Serializable  {
 
 }
