@@ -1,4 +1,4 @@
-package it.vegas.gameframework.states.executors;
+package it.vegas.gameframework.states.library.executors;
 
 import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.states.GameState;
