@@ -1,6 +1,7 @@
 package it.vegas.gameframework.states;
 
 import it.vegas.gameframework.contexts.GameContext;
+import it.vegas.gameframework.exceptions.GameException;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
 import lombok.Getter;
@@ -27,7 +28,18 @@ public class GameState<C extends GameContext> {
         this.description = "";
         this.context = null;
         this.nextGameStates = new ArrayList<>();
-        this.action = (self) -> log.warn("Unimplemented action in {}", self);
+        this.action = (self, context) -> log.warn("Unimplemented action in {}", self);
+    }
+
+    public GameState(String name) {
+        this();
+        this.name = name;
+    }
+
+    public GameState(String name, String description) {
+        this();
+        this.name = name;
+        this.description = description;
     }
 
     public GameState(String name, String description, C context, List<GameStateCondition<C>> nextGameStates, GameStateAction<C> action) {
@@ -38,8 +50,8 @@ public class GameState<C extends GameContext> {
         this.action = action;
     }
 
-    public void execute() {
-        action.execute(this);
+    public void execute() throws GameException {
+        action.execute(this, context);
     }
 
     /**
@@ -50,7 +62,7 @@ public class GameState<C extends GameContext> {
     public GameState<C> getNextGameState() {
         List<GameStateCondition<C>> gameStateConditions = nextGameStates;
         for (GameStateCondition<C> c : gameStateConditions) {
-            if (c.getExpression(this)) {
+            if (c.getExpression(this, context)) {
                 return c.getResultState();
             }
         }

@@ -23,7 +23,6 @@ public class Executor<C extends GameContext> extends GameState<C> {
     @Setter
     protected GameState<C> currentState;
 
-
     public Executor(GameState<C> startingState) {
         this.startingState = startingState;
     }

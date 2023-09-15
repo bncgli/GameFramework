@@ -163,7 +163,7 @@ public class StateMachineBuilder {
                     List.of(
                             new GameStateCondition<>(
                                     "",
-                                    (s) -> true,
+                                    (s, context) -> true,
                                     child.gameState
                             )
                     )

@@ -3,39 +3,46 @@ package it.vegas.gameframework.exceptions;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Extended version of Exception that override the
+ * error's hash with a new customizable errorID.
+ * With GameException errors can be handled by the executors
+ * and categorized by number.
+ * GameException returns the ErrorId by overriding hashCode() method
+ */
 @ToString
 public class GameException extends Exception {
 
     @Setter
-    protected int errorId;
+    protected int errorHash;
 
-    public GameException(int errorId) {
+    public GameException(int errorHash) {
         super();
-        this.errorId = errorId;
+        this.errorHash = errorHash;
     }
 
-    public GameException(int errorId, String message) {
+    public GameException(int errorHash, String message) {
         super(message);
-        this.errorId = errorId;
+        this.errorHash = errorHash;
     }
 
-    public GameException(int errorId, String message, Throwable cause) {
+    public GameException(int errorHash, String message, Throwable cause) {
         super(message, cause);
-        this.errorId = errorId;
+        this.errorHash = errorHash;
     }
 
     @Override
     public String getMessage() {
-        return "[Error Id: " + errorId + "]" + super.getMessage();
+        return "[Error Id: " + errorHash + "]" + super.getMessage();
     }
 
     @Override
     public String getLocalizedMessage() {
-        return "[Error Id: " + errorId + "]" + super.getLocalizedMessage();
+        return "[Error Id: " + errorHash + "]" + super.getLocalizedMessage();
     }
 
     @Override
     public int hashCode() {
-        return errorId;
+        return errorHash;
     }
 }

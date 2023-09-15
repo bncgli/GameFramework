@@ -11,12 +11,16 @@ public class GameStateCondition<C extends GameContext> {
 
 
     public interface Expression <C extends GameContext>{
-        boolean check(GameState<C> self);
+        boolean check(GameState<C> self, C context);
     }
 
     private String expressionDescription;
     private Expression<C> expression;
     private GameState<C> resultState;
+
+    public static <C extends GameContext> GameStateCondition<C> create(String expressionDescription, Expression<C> expression, GameState<C> resultState){
+        return new GameStateCondition<>(expressionDescription, expression, resultState);
+    }
 
 
     public GameStateCondition(Expression<C> expression, GameState<C> resultState) {
@@ -31,8 +35,8 @@ public class GameStateCondition<C extends GameContext> {
         this.resultState = resultState;
     }
 
-    public boolean getExpression(GameState<C> self) {
-        return expression.check(self);
+    public boolean getExpression(GameState<C> self, C context) {
+        return expression.check(self, context);
     }
 
     @Override
