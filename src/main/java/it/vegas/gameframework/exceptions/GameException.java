@@ -28,7 +28,6 @@ public class GameException extends Exception {
         super(message);
         this.errorHash = errorHash;
     }
-
     public GameException(int errorHash, String message, Throwable cause) {
         super(message, cause);
         this.errorHash = errorHash;
