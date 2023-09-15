@@ -3,6 +3,10 @@ package it.vegas.gameframework.exceptions;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * Extended version of Exception that override the
  * error's hash with a new customizable errorID.
@@ -33,12 +37,12 @@ public class GameException extends Exception {
 
     @Override
     public String getMessage() {
-        return "[Error Id: " + errorHash + "]" + super.getMessage();
+        return "[Error hash: " + errorHash + "] " + super.getMessage() + "\n" + Stream.of(super.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
     @Override
     public String getLocalizedMessage() {
-        return "[Error Id: " + errorHash + "]" + super.getLocalizedMessage();
+        return "[Error hash: " + errorHash + "] " + super.getLocalizedMessage() + "\n" + Stream.of(super.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
     @Override
