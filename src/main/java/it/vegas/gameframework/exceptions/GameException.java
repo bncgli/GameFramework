@@ -33,14 +33,8 @@ public class GameException extends Exception {
         this.errorHash = errorHash;
     }
 
-    @Override
-    public String getMessage() {
-        return "[Error hash: " + errorHash + "] " + super.getMessage() + "\n" + Stream.of(super.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
-    }
-
-    @Override
-    public String getLocalizedMessage() {
-        return "[Error hash: " + errorHash + "] " + super.getLocalizedMessage() + "\n" + Stream.of(super.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+    public static String format(Exception e){
+        return "[Error hash: " + e.hashCode() + "] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
     @Override

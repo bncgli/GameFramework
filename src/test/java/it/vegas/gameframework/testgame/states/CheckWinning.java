@@ -73,7 +73,7 @@ public class CheckWinning<C extends TestGameContext> extends GameState<C> {
 
     @Override
     public void execute() throws GameException {
-        if (context.matrix == null) throw new GameException(100, "Missing matrix on check winning");
+        if (context.matrix != null) throw new GameException(100, "Missing matrix on check winning");
         List<List<Character>> winlines = getWinline(context.matrix);
         check(winlines);
     }

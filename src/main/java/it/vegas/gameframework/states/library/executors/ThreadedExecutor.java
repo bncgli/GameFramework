@@ -1,6 +1,7 @@
 package it.vegas.gameframework.states.library.executors;
 
 import it.vegas.gameframework.contexts.GameContext;
+import it.vegas.gameframework.exceptions.GameException;
 import it.vegas.gameframework.states.GameState;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +43,7 @@ public class ThreadedExecutor<C extends GameContext> extends Executor<C> impleme
                 currentState = currentState.getNextGameState();
             }
         } catch (Exception e) {
-            log.error(
-                    "Error occurred executing GameState {} with errorID {} and message:\n{}",
-                    currentState,
-                    e.hashCode(),
-                    e.getMessage()
-            );
+            log.error(GameException.format(e));
         }
     }
 

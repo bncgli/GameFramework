@@ -1,6 +1,7 @@
 package it.vegas.gameframework.states.library.executors;
 
 import it.vegas.gameframework.contexts.GameContext;
+import it.vegas.gameframework.exceptions.GameException;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.library.executors.interfaces.ExecutorMonitor;
 import lombok.Getter;
@@ -60,12 +61,7 @@ public class MonitorableExecutor<C extends GameContext> extends GameState<C> {
             monitor.afterLoop(currentState);
         } catch (Exception e) {
             monitor.caughtException(currentState, e);
-            log.error(
-                    "Error occurred executing GameState {} with errorID {} and message:\n{}",
-                    currentState,
-                    e.hashCode(),
-                    e.getMessage()
-            );
+            log.error(GameException.format(e));
         }
     }
 
