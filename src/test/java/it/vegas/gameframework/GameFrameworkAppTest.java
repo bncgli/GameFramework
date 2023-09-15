@@ -132,7 +132,8 @@ class GameFrameworkAppTest {
     void gameTest(){
         TestSlotService service = new TestSlotService();
 
-        MachineRenderer.renderGraph(service.stateMachine,100, "looping");
+        MachineRenderer.renderMachine(service.stateMachine);
+        //MachineRenderer.renderGraph(service.stateMachine,100, "looping");
 
         for (int i = 0; i < 10; i++) {
             System.out.println(service.spin());

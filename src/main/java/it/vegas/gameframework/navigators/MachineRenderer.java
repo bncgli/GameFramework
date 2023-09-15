@@ -14,6 +14,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -26,12 +28,12 @@ public class MachineRenderer {
      * Returns the list of gameStates with the direct connections indented
      * following the hierarchy. This method returns the direct connections
      * for the logic connections use the method "renderGraph".
-     * WARNING: This machine is susceptible to loops and can cause stack overflow errors
+     * WARNING: This method is doesn't render communal endings
      * @param start The gameState to start to render the machine
      * @param <C> The context object that has to extend GameContext
      */
     public static <C extends GameContext> void renderMachine(GameState<C> start) {
-        printMachine(start, "  ");
+        printMachine(start, "  ", new ArrayList<>());
     }
 
 
@@ -42,11 +44,16 @@ public class MachineRenderer {
      * @param indent The indentation of the childs of each state
      * @param <C> The context object that has to extend GameContext
      */
-    private static <C extends GameContext> void printMachine(GameState<C> start, String indent) {
-        System.out.println(indent + start.toString());
-        for (GameStateCondition<C> i : start.getNextGameStates()) {
+    private static <C extends GameContext> void printMachine(GameState<C> start, String indent, List<GameState<C>> visited) {
+        if(!visited.contains(start)){
+            System.out.println(indent + start.toString());
+            visited.add(start);
+        }else{
+            return;
+        }
 
-            MachineRenderer.printMachine(i.getResultState(), " " + indent.replace("└─", "  ") + "└─ ");
+        for (GameStateCondition<C> i : start.getNextGameStates()) {
+            MachineRenderer.printMachine(i.getResultState(), " " + indent.replace("└─", "  ") + "└─ ", visited);
         }
     }
 
