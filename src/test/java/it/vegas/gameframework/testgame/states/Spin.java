@@ -4,9 +4,7 @@ import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.testgame.TestGameContext;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Component
 public class Spin<C extends TestGameContext> extends GameState<C> {
@@ -14,17 +12,15 @@ public class Spin<C extends TestGameContext> extends GameState<C> {
 
     public Spin() {
         super("Spin", "spin and generate the matrix of symbols", null, null, null);
-        reels = List.of(
-                List.of(
-                        'A', 'K', 'K', 'Q', 'Q', 'Q', 'J', 'J', 'J', 'J'
-                ),
-                List.of(
-                        'A', 'K', 'K', 'Q', 'Q', 'Q', 'J', 'J', 'J', 'J'
-                ),
-                List.of(
-                        'A', 'K', 'K', 'Q', 'Q', 'Q', 'J', 'J', 'J', 'J'
-                )
-        );
+        List<Character> l1 = new ArrayList<>(List.of('A', 'K', 'K', 'Q', 'Q', 'Q', 'J', 'J', 'J', 'J'));
+        List<Character> l2 = new ArrayList<>(l1);
+        List<Character> l3 = new ArrayList<>(l1);
+
+        Collections.shuffle(l1);
+        Collections.shuffle(l2);
+        Collections.shuffle(l3);
+
+        reels = List.of(l1, l2, l3);
     }
 
     private List<List<Character>> getMatrix(List<Integer> pos) {
@@ -45,7 +41,7 @@ public class Spin<C extends TestGameContext> extends GameState<C> {
         if (context.freeSpins > 0) {
             context.freeSpins--;
             context.isFreeSpin = true;
-        }else{
+        } else {
             context.isFreeSpin = false;
         }
         List<Integer> ints = new Random().ints(3, 0, 10).boxed().toList();
