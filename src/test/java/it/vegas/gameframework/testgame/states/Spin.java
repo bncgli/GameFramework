@@ -8,7 +8,7 @@ import java.util.*;
 
 @Component
 public class Spin<C extends TestGameContext> extends GameState<C> {
-    private List<List<Character>> reels;
+    private final List<List<Character>> reels;
 
     public Spin() {
         super("Spin", "spin and generate the matrix of symbols", null, null, null);
