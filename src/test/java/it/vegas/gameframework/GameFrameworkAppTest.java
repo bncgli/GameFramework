@@ -6,7 +6,7 @@ import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.navigators.MachineRenderer;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
-import it.vegas.gameframework.states.library.executors.Executor;
+import it.vegas.gameframework.states.library.executors.GameExecutor;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
 import it.vegas.gameframework.testgame.TestSlotService;
 import org.junit.jupiter.api.Test;
@@ -124,7 +124,7 @@ class GameFrameworkAppTest {
         MachineRenderer.renderMachine(testMachine);
         //       MachineRenderer.renderGraph(testMachine, 100, "graph3");
 
-        Executor<TestContext> exec = new Executor<>(testMachine);
+        GameExecutor<TestContext> exec = new GameExecutor<>(testMachine);
         exec.execute();
     }
 

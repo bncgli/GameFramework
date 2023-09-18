@@ -1,53 +1,33 @@
 package it.vegas.gameframework.states.library.executors;
 
 import it.vegas.gameframework.contexts.GameContext;
-import it.vegas.gameframework.exceptions.GameException;
 import it.vegas.gameframework.states.GameState;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 @Slf4j
 @Getter
-public class ThreadedExecutor<C extends GameContext> extends Executor<C> implements Runnable{
+public class ThreadedExecutor<C extends GameContext> extends GameExecutor<C> implements Runnable{
 
-    private Thread thread;
-    private boolean stop;
-    private boolean pause;
+    Executor executor;
 
     public ThreadedExecutor(GameState<C> startingState) {
         super(startingState);
-        stop = false;
-        pause = false;
+        executor = Executors.newSingleThreadExecutor();
     }
 
     @Override
     public void execute() {
-        thread = new Thread(this);
-        thread.start();
+        executor.execute(this);
     }
 
 
     @Override
     public void run() {
-        currentState = startingState;
-        try {
-            while (currentState != null) {
-                if(stop) break;
-                if(pause){
-                    Thread.sleep(250);
-                    continue;
-                }
-                log.info("Entering gameState: {}", currentState.getName());
-                currentState.execute();
-                log.info("Exiting gameState: {}", currentState.getName());
-                currentState = currentState.getNextGameState();
-            }
-        } catch (Exception e) {
-            log.error(GameException.format(e));
-        }
+        super.execute();
     }
 
-    public void stop(){
-        stop = true;
-    }
 }

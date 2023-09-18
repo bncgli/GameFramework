@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.LinkedList;
+import java.util.List;
+
 
 /**
  * The executor class iter and activate the statemachine.
@@ -18,14 +21,16 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Getter
 @Slf4j
-public class Executor<C extends GameContext> extends GameState<C> {
+public class GameExecutor<C extends GameContext> extends GameState<C> {
 
     protected final GameState<C> startingState;
     @Setter
     protected GameState<C> currentState;
+    protected List<GameState<C>> visitedStates;
 
-    public Executor(GameState<C> startingState) {
+    public GameExecutor(GameState<C> startingState) {
         this.startingState = startingState;
+        visitedStates = new LinkedList<>();
     }
 
     /**
@@ -35,17 +40,20 @@ public class Executor<C extends GameContext> extends GameState<C> {
      */
     @Override
     public void execute() {
+        log.info("Starting executor: {}", this.getName());
         currentState = startingState;
         try {
             while (currentState != null) {
                 log.info("Entering gameState: {}", currentState.getName());
                 currentState.execute();
                 log.info("Exiting gameState: {}", currentState.getName());
+                visitedStates.add(currentState);
                 currentState = currentState.getNextGameState();
             }
         } catch (Exception e) {
-            log.error(GameException.format(e));
+            log.error(GameException.format(e, currentState.getName()));
         }
+        log.info("Ending executor: {}", this.getName());
     }
 
 }

@@ -33,8 +33,8 @@ public class GameException extends Exception {
         this.errorHash = errorHash;
     }
 
-    public static String format(Exception e){
-        return "[Error hash: " + e.hashCode() + "] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+    public static String format(Exception e, String gameStateName){
+        return "[Error hash: " + e.hashCode() + " in "+gameStateName+"] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
     @Override

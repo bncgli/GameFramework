@@ -2,7 +2,7 @@ package it.vegas.gameframework.testgame;
 
 import it.vegas.gameframework.builder.StateMachineBuilder;
 import it.vegas.gameframework.states.GameState;
-import it.vegas.gameframework.states.library.executors.Executor;
+import it.vegas.gameframework.states.library.executors.GameExecutor;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
 import it.vegas.gameframework.testgame.states.CheckWinning;
 import it.vegas.gameframework.testgame.states.Spin;
@@ -81,7 +81,7 @@ public class TestSlotService {
     }
 
     public String spin() {
-        Executor<TestGameContext> executor = new Executor<>(stateMachine);
+        GameExecutor<TestGameContext> executor = new GameExecutor<>(stateMachine);
         executor.execute();
         return context.toString();
     }

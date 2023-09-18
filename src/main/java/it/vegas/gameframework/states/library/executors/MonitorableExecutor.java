@@ -14,25 +14,23 @@ import lombok.extern.slf4j.Slf4j;
  * of abstract method that can be implemented to monitor the execution
  * of the statemachine. The class can used to monitor what happen when a specific
  * state is active to track bugs.
+ *
  * @param <C> The context class that has to extend GameContext
  */
 @Getter
 @Setter
 @Slf4j
-public class MonitorableExecutor<C extends GameContext> extends GameState<C> {
+public class MonitorableExecutor<C extends GameContext> extends GameExecutor<C> {
 
-    protected final GameState<C> startingState;
-    @Setter
-    protected GameState<C> currentState;
     protected ExecutorMonitor monitor;
 
     public MonitorableExecutor(ExecutorMonitor monitor, GameState<C> startingState) {
+        super(startingState);
         this.monitor = monitor;
-        this.startingState = startingState;
     }
 
     /**
-     * Execute overrides the GameState method.
+     * Execute overrides the execute method.
      * This method iters the state machine until the end of the GameStates
      * or until a GameState returns an error. Each step is sended to
      * the monitor interface.
@@ -45,23 +43,18 @@ public class MonitorableExecutor<C extends GameContext> extends GameState<C> {
             while (currentState != null) {
                 log.info("Entering gameState: {}", currentState.getName());
                 monitor.beforeExecution(currentState);
-
                 currentState.execute();
-
                 monitor.afterExecution(currentState);
-
                 log.info("Exiting gameState: {}", currentState.getName());
-
+                visitedStates.add(currentState);
                 GameState<C> nextGameState = currentState.getNextGameState();
-
                 monitor.nextSelectedGamestate(currentState, nextGameState);
-
                 currentState = nextGameState;
             }
             monitor.afterLoop(currentState);
         } catch (Exception e) {
             monitor.caughtException(currentState, e);
-            log.error(GameException.format(e));
+            log.error(GameException.format(e, currentState.getName()));
         }
     }
 
