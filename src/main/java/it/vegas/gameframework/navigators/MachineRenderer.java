@@ -91,7 +91,6 @@ public class MachineRenderer {
      * so nodes with the same name are considered the same one, So a good
      * nomenclature is recommended.
      * @param start The starting node where starts to render the statemachine
-     * @param branchSpacing (default and min 100) the horizontal space between branches of the graph
      * @param filename (default "graph") the name of the file, written without extension
      * @param <C> The context object that has to extend GameContext
      */
