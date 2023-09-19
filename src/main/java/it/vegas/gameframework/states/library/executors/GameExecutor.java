@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -31,6 +32,7 @@ public class GameExecutor<C extends GameContext> extends GameState<C> {
     public GameExecutor(GameState<C> startingState) {
         this.startingState = startingState;
         visitedStates = new LinkedList<>();
+        context = startingState.getContext();
     }
 
     /**
@@ -54,6 +56,12 @@ public class GameExecutor<C extends GameContext> extends GameState<C> {
             log.error(GameException.format(e, currentState.getName()));
         }
         log.info("Ending executor: {}", this.getName());
+    }
+
+    public static <C extends GameContext> GameExecutor<C> execute(GameState<C> startingState){
+        GameExecutor<C> executor = new GameExecutor<>(startingState);
+        executor.execute();
+        return executor;
     }
 
 }

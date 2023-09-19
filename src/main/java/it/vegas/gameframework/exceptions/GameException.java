@@ -3,6 +3,7 @@ package it.vegas.gameframework.exceptions;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
  * GameException returns the ErrorId by overriding hashCode() method
  */
 @ToString
-public class GameException extends Exception {
+public class GameException extends Exception implements Serializable {
 
     @Setter
     protected int errorHash;
@@ -35,6 +36,10 @@ public class GameException extends Exception {
 
     public static String format(Exception e, String gameStateName){
         return "[Error hash: " + e.hashCode() + " in "+gameStateName+"] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+    }
+
+    public static String format(Exception e){
+        return "[Error hash: " + e.hashCode() + "] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
     @Override

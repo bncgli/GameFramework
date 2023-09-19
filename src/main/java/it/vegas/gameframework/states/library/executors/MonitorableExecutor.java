@@ -58,5 +58,11 @@ public class MonitorableExecutor<C extends GameContext> extends GameExecutor<C> 
         }
     }
 
+    public static <C extends GameContext> MonitorableExecutor<C> execute(GameState<C> stateMachine, ExecutorMonitor monitor){
+        MonitorableExecutor<C> executor = new MonitorableExecutor<>(monitor, stateMachine);
+        executor.execute();
+        return executor;
+    }
+
 
 }

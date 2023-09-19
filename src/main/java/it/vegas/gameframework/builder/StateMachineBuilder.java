@@ -1,10 +1,12 @@
 package it.vegas.gameframework.builder;
 
 import it.vegas.gameframework.contexts.GameContext;
+import it.vegas.gameframework.serializations.Serializer;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -19,7 +21,7 @@ public class StateMachineBuilder {
      *
      * @param <C> context class that must extend GameContext
      */
-    public static class EmptyBuilder<C extends GameContext> {
+    public static class EmptyBuilder<C extends GameContext> implements Serializable {
 
         private final C context;
 
@@ -57,7 +59,7 @@ public class StateMachineBuilder {
      *
      * @param <C> the class of the context that has to extend GameContext
      */
-    public static class Builder<C extends GameContext> {
+    public static class Builder<C extends GameContext> implements Serializable{
         private GameState<C> gameState;
         private final Builder<C> parent;
 

@@ -5,12 +5,14 @@ import it.vegas.gameframework.states.GameState;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
-public class GameStateCondition<C extends GameContext> {
+public class GameStateCondition<C extends GameContext> implements Serializable {
 
 
-    public interface Expression <C extends GameContext>{
+    public interface Expression <C extends GameContext> extends Serializable{
         boolean check(GameState<C> self, C context);
     }
 

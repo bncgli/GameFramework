@@ -4,11 +4,15 @@ package it.vegas.gameframework;
 import it.vegas.gameframework.builder.StateMachineBuilder;
 import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.navigators.MachineRenderer;
+import it.vegas.gameframework.serializations.Deserializer;
+import it.vegas.gameframework.serializations.Serializer;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
 import it.vegas.gameframework.states.library.executors.GameExecutor;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
+import it.vegas.gameframework.testgame.TestGameContext;
 import it.vegas.gameframework.testgame.TestSlotService;
+import it.vegas.gameframework.testgame.states.Spin;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -121,10 +125,15 @@ class GameFrameworkAppTest {
                 );
 
 
-        MachineRenderer.renderMachine(testMachine);
-        //       MachineRenderer.renderGraph(testMachine, 100, "graph3");
+        MachineRenderer.renderGraph(testMachine, 100, "StoredMachine");
 
-        GameExecutor<TestContext> exec = new GameExecutor<>(testMachine);
+
+        Serializer.save(testMachine, "testSerialization");
+        GameState<TestContext> loadedmachine = Deserializer.load("testSerialization", GameState.class);
+
+        MachineRenderer.renderGraph(loadedmachine,100,"LoadedMachine");
+
+        GameExecutor<TestContext> exec = new GameExecutor<>(loadedmachine);
         exec.execute();
     }
 
@@ -139,5 +148,37 @@ class GameFrameworkAppTest {
             System.out.println(service.spin());
             System.out.println("\n\n\n\n");
         }
+    }
+
+    @Test
+    void serializationTest(){
+        TestGameContext context = new TestGameContext();
+
+        GameState<TestGameContext> storedMachine = StateMachineBuilder.builder(context)
+                .newGameState()
+                .setName("Begin")
+                .setAction((s,c)-> System.out.println("Executing begin"))
+
+                .setNextGameState(new Spin<>())
+
+                .setNextGameState()
+                .setName("End")
+                .setAction((s,c)-> System.out.println("Executing ending"))
+                .build();
+        
+        MachineRenderer.renderGraph(storedMachine,100,"storedMachine");
+        
+        Serializer.save(storedMachine, "storedMachine");
+        GameState<TestContext> loadedMachine = Deserializer.load("storedMachine", GameState.class);
+        MachineRenderer.renderGraph(loadedMachine, 100, "loadedMachine");
+
+        GameExecutor<TestGameContext> execute = GameExecutor.execute(storedMachine);
+        System.out.println("\n\n\n\n");
+        GameExecutor<TestContext> execute1 = GameExecutor.execute(loadedMachine);
+
+        System.out.println(execute.getContext());
+        System.out.println(execute1.getContext());
+
+
     }
 }

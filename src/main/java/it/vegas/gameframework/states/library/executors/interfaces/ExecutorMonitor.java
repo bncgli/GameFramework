@@ -3,7 +3,10 @@ package it.vegas.gameframework.states.library.executors.interfaces;
 import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.states.GameState;
 
-public interface ExecutorMonitor {
+import java.io.Serial;
+import java.io.Serializable;
+
+public interface ExecutorMonitor extends Serializable {
     <C extends GameContext> void beforeLoop(GameState<C> currentState);
 
     <C extends GameContext> void beforeExecution(GameState<C> currentState);

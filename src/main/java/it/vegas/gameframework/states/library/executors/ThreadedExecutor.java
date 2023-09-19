@@ -30,4 +30,10 @@ public class ThreadedExecutor<C extends GameContext> extends GameExecutor<C> imp
         super.execute();
     }
 
+
+    public static <C extends GameContext> ThreadedExecutor<C> execute(GameState<C> startingState){
+        ThreadedExecutor<C> executor = new ThreadedExecutor<>(startingState);
+        executor.execute();
+        return executor;
+    }
 }
