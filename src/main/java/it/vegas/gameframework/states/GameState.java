@@ -82,17 +82,4 @@ public class GameState<C extends GameContext> implements Serializable {
                 '}';
     }
 
-    public List<GameState<C>> getMachineAsList() {
-        return getMachineAsList(new ArrayList<>());
-    }
-
-    protected List<GameState<C>> getMachineAsList(List<GameState<C>> visited) {
-        visited.add(this);
-        for (GameStateCondition<C> c : nextGameStates) {
-            if (!visited.contains(c.getResultState())) {
-                visited.addAll(c.getResultState().getMachineAsList(visited));
-            }
-        }
-        return visited;
-    }
 }

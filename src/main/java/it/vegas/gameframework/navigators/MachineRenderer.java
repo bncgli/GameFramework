@@ -24,6 +24,12 @@ import java.util.Objects;
  */
 public class MachineRenderer {
 
+    private static int branchSpacing = 100;
+
+    public static void setBranchSpacing(int newVal){
+        branchSpacing = Math.max(branchSpacing, 100);
+    }
+
     /**
      * Returns the list of gameStates with the direct connections indented
      * following the hierarchy. This method returns the direct connections
@@ -89,13 +95,13 @@ public class MachineRenderer {
      * @param filename (default "graph") the name of the file, written without extension
      * @param <C> The context object that has to extend GameContext
      */
-    public static <C extends GameContext> void renderGraph(GameState<C> start, Integer branchSpacing, String filename) {
+    public static <C extends GameContext> void renderGraph(GameState<C> start, String filename) {
         DefaultDirectedGraph<String, ConditionEdge> graph = new DefaultDirectedGraph<>(ConditionEdge.class);
         graph = getMachineGraph(start, graph);
 
         JGraphXAdapter<String, ConditionEdge> graphAdapter = new JGraphXAdapter<>(graph);
         mxHierarchicalLayout layout = new mxHierarchicalLayout(graphAdapter);
-        layout.setIntraCellSpacing((branchSpacing != null && branchSpacing > 100) ? branchSpacing : 100);
+        layout.setIntraCellSpacing(branchSpacing);
         layout.setParallelEdgeSpacing(0.0);
         layout.execute(graphAdapter.getDefaultParent());
 

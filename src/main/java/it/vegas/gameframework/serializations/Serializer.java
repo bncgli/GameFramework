@@ -25,7 +25,7 @@ public class Serializer {
         out.close();
         file.close();
 
-        System.out.println("Object has been serialized");
+        log.info("Object deserialized");
     }
 
 }

@@ -125,20 +125,20 @@ class GameFrameworkAppTest {
                 );
 
 
-        MachineRenderer.renderGraph(testMachine, 100, "StoredMachine");
+        MachineRenderer.renderGraph(testMachine, "StoredMachine");
 
 
         Serializer.save(testMachine, "testSerialization");
         GameState<TestContext> loadedmachine = Deserializer.load("testSerialization", GameState.class);
 
-        MachineRenderer.renderGraph(loadedmachine,100,"LoadedMachine");
+        MachineRenderer.renderGraph(loadedmachine, "LoadedMachine");
 
         GameExecutor<TestContext> exec = new GameExecutor<>(loadedmachine);
         exec.execute();
     }
 
     @Test
-    void gameTest(){
+    void gameTest() {
         TestSlotService service = new TestSlotService();
 
         MachineRenderer.renderMachine(service.stateMachine);
@@ -151,26 +151,26 @@ class GameFrameworkAppTest {
     }
 
     @Test
-    void serializationTest(){
+    void serializationTest() {
         TestGameContext context = new TestGameContext();
 
         GameState<TestGameContext> storedMachine = StateMachineBuilder.builder(context)
                 .newGameState()
                 .setName("Begin")
-                .setAction((s,c)-> System.out.println("Executing begin"))
+                .setAction((s, c) -> System.out.println("Executing begin"))
 
                 .setNextGameState(new Spin<>())
 
                 .setNextGameState()
                 .setName("End")
-                .setAction((s,c)-> System.out.println("Executing ending"))
+                .setAction((s, c) -> System.out.println("Executing ending"))
                 .build();
-        
-        MachineRenderer.renderGraph(storedMachine,100,"storedMachine");
-        
+
+        MachineRenderer.renderGraph(storedMachine, "storedMachine");
+
         Serializer.save(storedMachine, "storedMachine");
         GameState<TestContext> loadedMachine = Deserializer.load("storedMachine", GameState.class);
-        MachineRenderer.renderGraph(loadedMachine, 100, "loadedMachine");
+        MachineRenderer.renderGraph(loadedMachine, "loadedMachine");
 
         GameExecutor<TestGameContext> execute = GameExecutor.execute(storedMachine);
         System.out.println("\n\n\n\n");
