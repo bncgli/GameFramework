@@ -1,6 +1,6 @@
 package it.vegas.gameframework.testgame;
 
-import it.vegas.gameframework.builder.StateMachineBuilder;
+import it.vegas.gameframework.builder.StateTreeBuilder;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.library.executors.GameExecutor;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
@@ -33,7 +33,7 @@ public class TestSlotService {
         updateData.setAction((s, c) -> System.out.println("Updating data"));
 
 
-        stateMachine = StateMachineBuilder.builder(context)
+        stateMachine = StateTreeBuilder.builder(context)
                 .newGameState(clearContext)
                 .setNextGameState(loadData)
                 .setNextGameState(spin)
@@ -41,7 +41,7 @@ public class TestSlotService {
                         new GameStateCondition<>(
                                 "fs = t",
                                 (s, c) -> !context.isFreeSpin,
-                                StateMachineBuilder.builder(context)
+                                StateTreeBuilder.builder(context)
                                         .newGameState(checkWinningNormal)
 
                                         .setBranchingStates(
@@ -60,7 +60,7 @@ public class TestSlotService {
                         new GameStateCondition<>(
                                 "fs = f",
                                 (s, c) -> context.isFreeSpin,
-                                StateMachineBuilder.builder(context)
+                                StateTreeBuilder.builder(context)
                                         .newGameState(checkWinningFreeSpin)
 
 

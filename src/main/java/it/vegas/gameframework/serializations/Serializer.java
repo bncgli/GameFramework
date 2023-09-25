@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 @Slf4j
-public class Serializer {
+public final class Serializer {
 
     public static <O> void save(O target, String fileName) {
         try {

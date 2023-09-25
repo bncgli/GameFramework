@@ -1,7 +1,6 @@
 package it.vegas.gameframework.builder;
 
 import it.vegas.gameframework.contexts.GameContext;
-import it.vegas.gameframework.serializations.Serializer;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.interfaces.actions.GameStateAction;
 import it.vegas.gameframework.states.library.structures.GameStateCondition;
@@ -10,10 +9,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * The StateMachineBuilder class uses the Builder Design pattern
+ * The StateTreeBuilder class uses the Builder Design pattern
  * to simplify the creation of the state machine
  */
-public class StateMachineBuilder {
+public final class StateTreeBuilder {
 
     /**
      * Utility class it used only for create the root state of the
@@ -21,7 +20,7 @@ public class StateMachineBuilder {
      *
      * @param <C> context class that must extend GameContext
      */
-    public static class EmptyBuilder<C extends GameContext> implements Serializable {
+    public static final class EmptyBuilder<C extends GameContext> implements Serializable {
 
         private final C context;
 
@@ -38,8 +37,7 @@ public class StateMachineBuilder {
          * @return Returns a builder class to create the state machine
          */
         public Builder<C> newGameState(GameState<C> gameState) {
-            Builder<C> child = new Builder<>(gameState, context, null);
-            return child;
+            return new Builder<>(gameState, context, null);
         }
 
         /**
@@ -59,7 +57,7 @@ public class StateMachineBuilder {
      *
      * @param <C> the class of the context that has to extend GameContext
      */
-    public static class Builder<C extends GameContext> implements Serializable{
+    public static final class Builder<C extends GameContext> implements Serializable{
         private GameState<C> gameState;
         private final Builder<C> parent;
 
@@ -190,7 +188,6 @@ public class StateMachineBuilder {
          * @return The GameState that is at the root of the state machine
          */
         public GameState<C> build() {
-
             if (parent != null) {
                 return parent.build();
             } else {

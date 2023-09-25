@@ -2,6 +2,7 @@ package it.vegas.gameframework.states.library.executors;
 
 import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.exceptions.GameException;
+import it.vegas.gameframework.statemachines.StateMachine;
 import it.vegas.gameframework.states.GameState;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 
 /**
@@ -18,13 +18,15 @@ import java.util.concurrent.Executor;
  * It takes the first GameState of the statemachine and execute it, then
  * It chooses the first GameStateCondition that returns true end sets it
  * as currentState and starts over until there are no more GameStates
+ *
  * @param <C> The context class that extends GameContext
  */
 @Getter
 @Slf4j
 public class GameExecutor<C extends GameContext> extends GameState<C> {
 
-    protected final GameState<C> startingState;
+    @Setter
+    protected GameState<C> startingState;
     @Setter
     protected GameState<C> currentState;
     protected List<GameState<C>> visitedStates;
@@ -32,7 +34,15 @@ public class GameExecutor<C extends GameContext> extends GameState<C> {
     public GameExecutor(GameState<C> startingState) {
         this.startingState = startingState;
         visitedStates = new LinkedList<>();
-        context = startingState.getContext();
+    }
+
+    public GameExecutor() {
+        this.startingState = null;
+        visitedStates = new LinkedList<>();
+    }
+
+    public GameExecutor(StateMachine<C> stateMachine) {
+        this(stateMachine.getStateTree());
     }
 
     /**
@@ -43,8 +53,9 @@ public class GameExecutor<C extends GameContext> extends GameState<C> {
     @Override
     public void execute() {
         log.info("Starting executor: {}", this.getName());
-        currentState = startingState;
         try {
+            if (startingState == null) throw new GameException(100, "starting state = null");
+            currentState = startingState;
             while (currentState != null) {
                 log.info("Entering gameState: {}", currentState.getName());
                 currentState.execute();
@@ -58,10 +69,15 @@ public class GameExecutor<C extends GameContext> extends GameState<C> {
         log.info("Ending executor: {}", this.getName());
     }
 
-    public static <C extends GameContext> GameExecutor<C> execute(GameState<C> startingState){
+    public static <C extends GameContext> GameExecutor<C> execute(GameState<C> startingState) {
         GameExecutor<C> executor = new GameExecutor<>(startingState);
         executor.execute();
         return executor;
     }
 
+    @Override
+    public C getContext() {
+        if (startingState == null) return null;
+        return startingState.getContext();
+    }
 }

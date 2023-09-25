@@ -1,6 +1,7 @@
 package it.vegas.gameframework.states.library.executors;
 
 import it.vegas.gameframework.contexts.GameContext;
+import it.vegas.gameframework.statemachines.StateMachine;
 import it.vegas.gameframework.states.GameState;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,15 @@ public class ThreadedExecutor<C extends GameContext> extends GameExecutor<C> imp
     public ThreadedExecutor(GameState<C> startingState) {
         super(startingState);
         executor = Executors.newSingleThreadExecutor();
+    }
+
+    public ThreadedExecutor() {
+        super();
+        executor = Executors.newSingleThreadExecutor();
+    }
+
+    public ThreadedExecutor(StateMachine<C> stateMachine) {
+        this(stateMachine.getStateTree());
     }
 
     @Override

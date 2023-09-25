@@ -2,6 +2,7 @@ package it.vegas.gameframework.states.library.executors;
 
 import it.vegas.gameframework.contexts.GameContext;
 import it.vegas.gameframework.exceptions.GameException;
+import it.vegas.gameframework.statemachines.StateMachine;
 import it.vegas.gameframework.states.GameState;
 import it.vegas.gameframework.states.library.executors.interfaces.ExecutorMonitor;
 import lombok.Getter;
@@ -29,6 +30,17 @@ public class MonitorableExecutor<C extends GameContext> extends GameExecutor<C> 
         this.monitor = monitor;
     }
 
+    public MonitorableExecutor(ExecutorMonitor monitor) {
+        super();
+        this.monitor = monitor;
+    }
+
+    public MonitorableExecutor(ExecutorMonitor monitor, StateMachine<C> stateMachine) {
+        this(monitor, stateMachine.getStateTree());
+    }
+
+
+
     /**
      * Execute overrides the execute method.
      * This method iters the state machine until the end of the GameStates
@@ -39,7 +51,7 @@ public class MonitorableExecutor<C extends GameContext> extends GameExecutor<C> 
     public void execute() {
         currentState = startingState;
         try {
-            monitor.beforeLoop(currentState);
+            monitor.beforeLoop();
             while (currentState != null) {
                 log.info("Entering gameState: {}", currentState.getName());
                 monitor.beforeExecution(currentState);
@@ -48,10 +60,10 @@ public class MonitorableExecutor<C extends GameContext> extends GameExecutor<C> 
                 log.info("Exiting gameState: {}", currentState.getName());
                 visitedStates.add(currentState);
                 GameState<C> nextGameState = currentState.getNextGameState();
-                monitor.nextSelectedGamestate(currentState, nextGameState);
+                monitor.nextSelectedGameState(currentState, nextGameState);
                 currentState = nextGameState;
             }
-            monitor.afterLoop(currentState);
+            monitor.afterLoop();
         } catch (Exception e) {
             monitor.caughtException(currentState, e);
             log.error(GameException.format(e, currentState.getName()));

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 @Slf4j
-public class Deserializer {
+public final class Deserializer {
 
     public static <O> O load(String fileName, Class<O> className) {
         try {
