@@ -79,17 +79,6 @@ public final class StateTreeBuilder {
         }
 
         /**
-         * Sets the description of the GameState
-         *
-         * @param description The new description of the GameState
-         * @return Returns self
-         */
-        public Builder<C> setDescription(String description) {
-            this.gameState.setDescription(description);
-            return this;
-        }
-
-        /**
          * Sets the Context of the GameState,
          * in case there are more than one
          * context can be updated here

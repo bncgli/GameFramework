@@ -5,13 +5,14 @@ import it.game.framework.states.GameState;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class Spin<C extends TestGameContext> extends GameState<C> {
     private final List<List<Character>> reels;
 
     public Spin() {
-        super("Spin", "spin and generate the matrix of symbols", null, null, null);
+        super("Spin",  null, null, null);
         List<Character> l1 = new ArrayList<>(List.of('A', 'K', 'K', 'Q', 'Q', 'Q', 'J', 'J', 'J', 'J'));
         List<Character> l2 = new ArrayList<>(l1);
         List<Character> l3 = new ArrayList<>(l1);
@@ -44,7 +45,7 @@ public class Spin<C extends TestGameContext> extends GameState<C> {
         } else {
             context.isFreeSpin = false;
         }
-        List<Integer> ints = new Random().ints(3, 0, 10).boxed().toList();
+        List<Integer> ints = new Random().ints(3, 0, 10).boxed().collect(Collectors.toList());
         context.matrix = getMatrix(ints);
     }
 }

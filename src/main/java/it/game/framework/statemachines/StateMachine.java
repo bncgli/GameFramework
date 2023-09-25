@@ -2,8 +2,9 @@ package it.game.framework.statemachines;
 
 import it.game.framework.contexts.GameContext;
 import it.game.framework.renderers.MachineRenderer;
-import it.game.framework.serializations.Serializer;
 import it.game.framework.serializations.Deserializer;
+import it.game.framework.serializations.Serializer;
+import it.game.framework.statemachines.interfaces.IterationAction;
 import it.game.framework.states.GameState;
 import it.game.framework.states.library.executors.GameExecutor;
 import it.game.framework.states.library.structures.GameStateCondition;
@@ -12,31 +13,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Slf4j
 public class StateMachine<C extends GameContext> {
-
-    /**
-     * Interface for the creation of lambdas that are executes
-     * in during th iteration of gamestates in the statemachine
-     *
-     * @param <C> context class that must extend GameContext
-     */
-    public interface IterationAction<C extends GameContext> extends Serializable {
-
-        /**
-         * Interface for Lambdas creation executed in
-         * GameStates during the iteration of the statetree
-         *
-         * @param self the reference to the gameState where the lambda is executed
-         */
-        void execute(GameState<C> self);
-    }
 
     private MachineRenderer.GraphSpecifics graphSpecs;
 
@@ -112,7 +98,17 @@ public class StateMachine<C extends GameContext> {
         return visited;
     }
 
+    public void apply(IterationAction<C> action) {
+        iterMachine(stateTree, new LinkedList<>(), action);
+    }
 
+    public void applyTo(GameState<C> target, IterationAction<C> action) {
+        iterMachine(stateTree, new LinkedList<>(), (s) -> {
+            if (s.equals(target)) {
+                action.execute(s);
+            }
+        });
+    }
 
     private void iterMachine(GameState<C> start, Collection<GameState<C>> visited, IterationAction<C> action) {
         if (!visited.contains(start)) {

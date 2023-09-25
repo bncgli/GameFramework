@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -19,14 +20,12 @@ import java.util.List;
 public class GameState<C extends GameContext> implements Serializable {
 
     protected String name;
-    protected String description;
     protected C context;
     protected List<GameStateCondition<C>> nextGameStates;
     protected GameStateAction<C> action;
 
     public GameState() {
         this.name = "GameState";
-        this.description = "";
         this.context = null;
         this.nextGameStates = new ArrayList<>();
         this.action = (self, context) -> log.warn("Unimplemented action in {}", self);
@@ -37,15 +36,8 @@ public class GameState<C extends GameContext> implements Serializable {
         this.name = name;
     }
 
-    public GameState(String name, String description) {
-        this();
+    public GameState(String name, C context, List<GameStateCondition<C>> nextGameStates, GameStateAction<C> action) {
         this.name = name;
-        this.description = description;
-    }
-
-    public GameState(String name, String description, C context, List<GameStateCondition<C>> nextGameStates, GameStateAction<C> action) {
-        this.name = name;
-        this.description = description;
         this.context = context;
         this.nextGameStates = nextGameStates;
         this.action = action;
@@ -58,6 +50,7 @@ public class GameState<C extends GameContext> implements Serializable {
     /**
      * Iters all the gamestateconditions and return the game state of
      * the FIRST game state condition returning TRUE
+     *
      * @return The gameState with the condition that returned true
      */
     public GameState<C> getNextGameState() {
@@ -72,11 +65,10 @@ public class GameState<C extends GameContext> implements Serializable {
 
     @Override
     public String toString() {
-        return "GameState{" +
+        return  "GameState{" +
                 "name='" + name + '\'' +
-                ", description='" + description + '\'' +
                 ", context=" + context +
-                ", nextGameState=" + (nextGameStates.stream().map(GameStateCondition::toString).toList()) +
+                ", nextGameState=" + (nextGameStates.stream().map(GameStateCondition::toString).collect(Collectors.toList())) +
                 ", action=" + action +
                 '}';
     }

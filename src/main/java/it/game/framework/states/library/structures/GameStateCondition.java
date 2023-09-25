@@ -12,7 +12,7 @@ import java.io.Serializable;
 public class GameStateCondition<C extends GameContext> implements Serializable {
 
 
-    public interface Expression <C extends GameContext> extends Serializable{
+    public interface Expression<C extends GameContext> extends Serializable {
         boolean check(GameState<C> self, C context);
     }
 
@@ -20,7 +20,7 @@ public class GameStateCondition<C extends GameContext> implements Serializable {
     private Expression<C> expression;
     private GameState<C> resultState;
 
-    public static <C extends GameContext> GameStateCondition<C> create(String expressionDescription, Expression<C> expression, GameState<C> resultState){
+    public static <C extends GameContext> GameStateCondition<C> create(String expressionDescription, Expression<C> expression, GameState<C> resultState) {
         return new GameStateCondition<>(expressionDescription, expression, resultState);
     }
 
@@ -43,8 +43,9 @@ public class GameStateCondition<C extends GameContext> implements Serializable {
 
     @Override
     public String toString() {
-        return "GameStateCondition{" +
-                "Condition, resultState=" + resultState.getName() +
-                '}';
+        return String.format("[Condition: %s -> %s]",
+                    getExpressionDescription(),
+                    resultState.getName()
+                );
     }
 }

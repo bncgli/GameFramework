@@ -15,7 +15,7 @@ public class CheckWinning<C extends TestGameContext> extends GameState<C> {
     private final Map<Character, Long> paytable;
 
     public CheckWinning() {
-        super("Check Winning", "Checks the winning by given matrix");
+        super("Check Winning");
         winlineRules = List.of(
                 List.of(1, 1, 1),
                 List.of(0, 0, 0),
