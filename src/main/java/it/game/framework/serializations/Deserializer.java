@@ -7,27 +7,34 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+/**
+ * The Deserializer loads a gamestatetree from a file
+ */
 @Slf4j
 public final class Deserializer {
 
-    public static <O> O load(String fileName, Class<O> className) {
+    /**
+     * Deserializes the machine from a gfobject file
+     *
+     * @param filename the name of the file where the statemachine is stored
+     * @return returns the object loaded from the gfobject file
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public static <O> O load(String filename, Class<O> className) {
         try {
-            return className.cast(loadFromFile(fileName + ((fileName.contains(".gfobject")) ? "" : ".gfobject")));
-        } catch (Exception ex) {
-            log.error(GameException.format(ex));
+            FileInputStream file = new FileInputStream(filename + ((filename.contains(".gfobject")) ? "" : ".gfobject"));
+            ObjectInputStream in = new ObjectInputStream(file);
+            Object object = in.readObject();
+            in.close();
+            file.close();
+
+            log.info("Object deserialized");
+
+            return className.cast(object);
+        } catch (Exception e) {
+            log.error(GameException.format(e));
         }
         return null;
-    }
-
-    private static Object loadFromFile(String filename) throws IOException, ClassNotFoundException {
-        FileInputStream file = new FileInputStream(filename);
-        ObjectInputStream in = new ObjectInputStream(file);
-        Object object = in.readObject();
-        in.close();
-        file.close();
-
-        log.info("Object deserialized");
-
-        return object;
     }
 }

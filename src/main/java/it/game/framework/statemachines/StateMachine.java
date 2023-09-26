@@ -102,14 +102,6 @@ public class StateMachine<C extends GameContext> {
         iterMachine(stateTree, new LinkedList<>(), action);
     }
 
-    public void applyTo(GameState<C> target, IterationAction<C> action) {
-        iterMachine(stateTree, new LinkedList<>(), (s) -> {
-            if (s.equals(target)) {
-                action.execute(s);
-            }
-        });
-    }
-
     private void iterMachine(GameState<C> start, Collection<GameState<C>> visited, IterationAction<C> action) {
         if (!visited.contains(start)) {
             visited.add(start);

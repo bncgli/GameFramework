@@ -7,25 +7,31 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
+
+/**
+ * Serializes an object in a gfobject file
+ */
 @Slf4j
 public final class Serializer {
 
-    public static <O> void save(O target, String fileName) {
+    /**
+     * Write the target object in the file with the supplied filename
+     * @param target The object to be saved
+     * @param filename the name of the file where will be stored
+     * @throws IOException
+     */
+    public static void save(Object target, String filename) {
         try {
-            writeOnFile(target, fileName + ((fileName.contains(".gfobject")) ? "" : ".gfobject"));
-        } catch (Exception ex) {
-            log.error(GameException.format(ex));
+            FileOutputStream file = new FileOutputStream(filename+ ((filename.contains(".gfobject")) ? "" : ".gfobject"));
+            ObjectOutputStream out = new ObjectOutputStream(file);
+            out.writeObject(target);
+            out.close();
+            file.close();
+
+            log.info("Object deserialized");
+        } catch (Exception e) {
+            log.error(GameException.format(e));
         }
-    }
-
-    private static void writeOnFile(Object target, String filename) throws IOException {
-        FileOutputStream file = new FileOutputStream(filename);
-        ObjectOutputStream out = new ObjectOutputStream(file);
-        out.writeObject(target);
-        out.close();
-        file.close();
-
-        log.info("Object deserialized");
     }
 
 }

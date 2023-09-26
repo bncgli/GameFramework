@@ -29,19 +29,39 @@ public class GameException extends Exception implements Serializable {
         super(message);
         this.errorHash = errorHash;
     }
+
     public GameException(int errorHash, String message, Throwable cause) {
         super(message, cause);
         this.errorHash = errorHash;
     }
 
-    public static String format(Exception e, String gameStateName){
-        return "[Error hash: " + e.hashCode() + " in "+gameStateName+"] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+    /**
+     * Formats an exception inserting contestualizing it with the gamestate that throwed it
+     *
+     * @param e             the exception to be formatted
+     * @param gameStateName The gamestate that throwed it
+     * @return the string of the formatted exception
+     */
+    public static String format(Exception e, String gameStateName) {
+        return "[Error hash: " + e.hashCode() + " in " + gameStateName + "] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
-    public static String format(Exception e){
+    /**
+     * Formats an exception to be readable with code and message
+     *
+     * @param e The exception to be formatted
+     * @return the string of the formatted exception
+     */
+    public static String format(Exception e) {
         return "[Error hash: " + e.hashCode() + "] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
+    /**
+     * Overrides the hash of the error
+     * to return the custom errorhash
+     *
+     * @return the custom errorhash of the gameException
+     */
     @Override
     public int hashCode() {
         return errorHash;

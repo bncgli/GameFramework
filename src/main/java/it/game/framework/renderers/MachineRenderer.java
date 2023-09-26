@@ -47,18 +47,45 @@ public final class MachineRenderer {
         }
     }
 
+    /**
+     * GraphSpecifics contains a list of variables that are necessary for the
+     * graph method to render the statemachine.
+     */
     @Builder
     @Getter
     @Setter
     public static class GraphSpecifics {
+        /**
+         * Sets the orientation of the graph.
+         * the default is 1 (top to bottom),
+         * an alternative is 7(left to right)
+         */
         @Builder.Default
         private int orientation = 1;
+        /**
+         * Represents the horizontal spacing between cells.
+         * The default value is 100, when condition descriptions
+         * overlap is better to increase this value to make space
+         * for them.
+         */
         @Builder.Default
         private double horizontalSpacing = 100;
+        /**
+         * Represents the vertical spacing between cells.
+         * The default value is 50.
+         */
         @Builder.Default
         private double verticalSpacing = 50;
+        /**
+         * The background color of the image.
+         * The default color is WHITE.
+         */
         @Builder.Default
         private Color backgroundColor = Color.WHITE;
+        /**
+         * The scale of the rendered image.
+         * The default scale is 3.
+         */
         @Builder.Default
         private int graphScale = 3;
     }
