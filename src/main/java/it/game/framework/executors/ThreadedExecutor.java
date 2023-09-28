@@ -1,8 +1,7 @@
-package it.game.framework.states.library.executors;
+package it.game.framework.executors;
 
 import it.game.framework.contexts.GameContext;
 import it.game.framework.statemachines.StateMachine;
-import it.game.framework.states.GameState;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,18 +14,13 @@ public class ThreadedExecutor<C extends GameContext> extends GameExecutor<C> imp
 
     Executor executor;
 
-    public ThreadedExecutor(GameState<C> startingState) {
-        super(startingState);
-        executor = Executors.newSingleThreadExecutor();
-    }
-
     public ThreadedExecutor() {
-        super();
-        executor = Executors.newSingleThreadExecutor();
+        this(null);
     }
 
     public ThreadedExecutor(StateMachine<C> stateMachine) {
-        this(stateMachine.getStateTree());
+        super(stateMachine);
+        executor = Executors.newSingleThreadExecutor();
     }
 
     @Override
@@ -34,16 +28,9 @@ public class ThreadedExecutor<C extends GameContext> extends GameExecutor<C> imp
         executor.execute(this);
     }
 
-
     @Override
     public void run() {
         super.execute();
     }
 
-
-    public static <C extends GameContext> ThreadedExecutor<C> execute(GameState<C> startingState){
-        ThreadedExecutor<C> executor = new ThreadedExecutor<>(startingState);
-        executor.execute();
-        return executor;
-    }
 }

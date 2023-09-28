@@ -2,75 +2,58 @@ package it.game.framework.states;
 
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
-import it.game.framework.states.interfaces.actions.GameStateAction;
-import it.game.framework.states.library.structures.GameStateCondition;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Getter
 @Setter
 @Slf4j
-public class GameState<C extends GameContext> implements Serializable {
+public abstract class GameState<C extends GameContext> implements Serializable {
 
+    public static int globalId = 0;
+
+    protected int id;
     protected String name;
-    protected C context;
-    protected List<GameStateCondition<C>> nextGameStates;
-    protected GameStateAction<C> action;
+    protected String description;
 
-    public GameState() {
-        this.name = "GameState";
-        this.context = null;
-        this.nextGameStates = new ArrayList<>();
-        this.action = (self, context) -> log.warn("Unimplemented action in {}", self);
+    public GameState(String name, String description) {
+        this.id = globalId++;
+        this.name = name;
     }
 
     public GameState(String name) {
-        this();
-        this.name = name;
+        this(name, "");
     }
 
-    public GameState(String name, C context, List<GameStateCondition<C>> nextGameStates, GameStateAction<C> action) {
-        this.name = name;
-        this.context = context;
-        this.nextGameStates = nextGameStates;
-        this.action = action;
+    public GameState() {
+        this("");
+        this.name = this.getClass().getSimpleName();
     }
 
-    public void execute() throws GameException {
-        action.execute(this, context);
+    public String ID() {
+        return String.format("%s.%03d", name, id);
     }
 
-    /**
-     * Iters all the gamestateconditions and return the game state of
-     * the FIRST game state condition returning TRUE
-     *
-     * @return The gameState with the condition that returned true
-     */
-    public GameState<C> getNextGameState() {
-        List<GameStateCondition<C>> gameStateConditions = nextGameStates;
-        for (GameStateCondition<C> c : gameStateConditions) {
-            if (c.getExpression(this, context)) {
-                return c.getResultState();
-            }
-        }
-        return null;
-    }
+    public abstract void execute(C context) throws GameException;
 
     @Override
     public String toString() {
-        return  "GameState{" +
+        return "GameState<C>{" +
                 "name='" + name + '\'' +
-                ", context=" + context +
-                ", nextGameState=" + (nextGameStates.stream().map(GameStateCondition::toString).collect(Collectors.toList())) +
-                ", action=" + action +
+                "description='" + description + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GameState<C> GameState = (GameState<C>) o;
+        return this.ID().equals(GameState.ID());
     }
 
 }

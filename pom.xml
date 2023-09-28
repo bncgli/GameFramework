@@ -37,7 +37,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.9</version>
+            <version>1.7.36</version>
         </dependency>
 
         <dependency>
@@ -50,6 +50,11 @@
             <groupId>org.jgrapht</groupId>
             <artifactId>jgrapht-ext</artifactId>
             <version>1.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -10,7 +10,7 @@ import java.io.Serializable;
  * the state machine can pickup data status and
  * class references from here.
  */
-@Component
 public abstract class GameContext implements Serializable  {
 
+    public String spinResult;
 }

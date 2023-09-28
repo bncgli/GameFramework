@@ -35,15 +35,25 @@ public class GameException extends Exception implements Serializable {
         this.errorHash = errorHash;
     }
 
+    public GameException(GameExceptionsLibrary e) {
+        super(e.getMessage());
+        this.errorHash = e.getId();
+    }
+
+    public GameException(GameExceptionsLibrary e, String messageExtension) {
+        super(e.getMessage() + " - " + messageExtension);
+        this.errorHash = e.getId();
+    }
+
+
     /**
-     * Formats an exception inserting contestualizing it with the gamestate that throwed it
-     *
-     * @param e             the exception to be formatted
-     * @param gameStateName The gamestate that throwed it
+     * Formats an exception inserting contestualizing it with the GameState<C> that throwed it
+     * @param e the exception to be formatted
+     * @param GameStateName The GameState<C> that throwed it
      * @return the string of the formatted exception
      */
-    public static String format(Exception e, String gameStateName) {
-        return "[Error hash: " + e.hashCode() + " in " + gameStateName + "] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+    public static String format(Exception e, String GameStateName) {
+        return "[Error hash: " + e.hashCode() + " in " + GameStateName + "] " + e.getMessage() + "\n" + Stream.of(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
     }
 
     /**

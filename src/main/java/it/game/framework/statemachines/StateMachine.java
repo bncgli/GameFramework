@@ -1,118 +1,131 @@
 package it.game.framework.statemachines;
 
+import it.game.framework.builders.Builder;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.renderers.MachineRenderer;
 import it.game.framework.serializations.Deserializer;
 import it.game.framework.serializations.Serializer;
 import it.game.framework.statemachines.interfaces.IterationAction;
 import it.game.framework.states.GameState;
-import it.game.framework.states.library.executors.GameExecutor;
-import it.game.framework.states.library.structures.GameStateCondition;
+import it.game.framework.executors.GameExecutor;
+import it.game.framework.states.library.GameStateConnection;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Getter
-@Setter
-@NoArgsConstructor
+
 @Slf4j
 public class StateMachine<C extends GameContext> {
 
-    private MachineRenderer.GraphSpecifics graphSpecs;
+    @Getter
+    @Setter
+    private C context;
+    private StateMachineData<C> data;
 
-    private GameState<C> stateTree;
+    private Builder<C> builder;
     private GameExecutor<C> executor;
+    private MachineRenderer<C> renderer;
 
-    public StateMachine(String filename) {
-        stateTree = new GameState<>();
-        stateTree = Deserializer.load(filename, stateTree.getClass());
-        executor = new GameExecutor<>();
-        executor.setStartingState(stateTree);
-        graphSpecs = MachineRenderer.GraphSpecifics.builder().build();
-    }
-
-    public StateMachine(GameState<C> stateTree, GameExecutor<C> executor) {
-        this.stateTree = stateTree;
+    public StateMachine(GameState<C> startState, List<GameState<C>> states, List<GameStateConnection<C>> connections, C context, Builder<C> builder, GameExecutor<C> executor, MachineRenderer<C> renderer) {
+        this.data = new StateMachineData<>(startState, states, connections);
+        this.context = context;
+        this.builder = builder;
         this.executor = executor;
-        executor.setStartingState(stateTree);
-        graphSpecs = MachineRenderer.GraphSpecifics.builder().build();
+        this.renderer = renderer;
     }
 
-    public StateMachine(GameState<C> stateTree) {
-        this(stateTree, new GameExecutor<>(stateTree));
+    public StateMachine(C context) {
+        this(
+                null,
+                new ArrayList<>(),
+                new ArrayList<>(),
+                context,
+                null,
+                null,
+                null
+        );
+        this.builder = new Builder<>(this);
+        this.executor = new GameExecutor<>(this);
+        this.renderer = new MachineRenderer<>(this);
     }
 
-    public static <C extends GameContext> StateMachine<C> create(GameState<C> startingState) {
-        return new StateMachine<>(startingState);
+    public StateMachine() {
+        this(
+                null,
+                new ArrayList<>(),
+                new ArrayList<>(),
+                null,
+                null,
+                null,
+                null
+        );
+        this.builder = new Builder<>(this);
+        this.executor = new GameExecutor<>(this);
+        this.renderer = new MachineRenderer<>(this);
     }
 
-    public void renderGraph(String filename) {
-        MachineRenderer.renderGraph(stateTree, filename, graphSpecs);
+    public void setExecutor(GameExecutor<C> executor){
+        this.executor = executor;
+        this.executor.setStateMachine(this);
+    }
+
+    public List<GameStateConnection<C>> getConnections() {
+        return data.getConnections();
+    }
+
+    public GameState<C> getStartState() {
+        return data.getStartState();
+    }
+
+    public List<GameState<C>> getStates() {
+        return data.getStates();
+    }
+
+    public void setStartState(GameState<C> startState) {
+        data.setStartState(startState);
+    }
+
+    public void setStates(List<GameState<C>> states) {
+        data.setStates(states);
+    }
+
+    public void setConnections(List<GameStateConnection<C>> GameStateConnections) {
+        data.setConnections(GameStateConnections);
+    }
+
+    public List<GameStateConnection<C>> getConnectionsOf(GameState<C> GameState) {
+        return getConnections().stream().filter(v -> v.getStartingState().equals(GameState)).collect(Collectors.toList());
+    }
+
+    public MachineRenderer<C> renderer() {
+        if (renderer == null) renderer = new MachineRenderer<>(this);
+        return renderer;
     }
 
     public void saveTo(String filename) {
-        Serializer.save(stateTree, filename);
+        Serializer.save(data, filename);
     }
 
     public void loadFrom(String filename) {
-        stateTree = Deserializer.load(filename, stateTree.getClass());
+        data = Deserializer.load(filename, data.getClass());
     }
 
-    public C getContext() {
-        return stateTree.getContext();
+    public Builder<C> builder() {
+        if (builder == null) builder = new Builder<>(this);
+        return builder;
     }
 
-    public GameState<C> getCurrentState() {
-        if (executor == null) return null;
-        return executor.getCurrentState();
-    }
-
-    public void setCurrentState(GameState<C> currentState) {
-        if (executor == null) return;
-        executor.setCurrentState(currentState);
-    }
-
-    public void execute() {
-        if (executor == null) {
-            executor = GameExecutor.execute(stateTree);
-            return;
-        }
-        executor.execute();
-    }
-
-    public void execute(GameExecutor<C> executor) {
-        this.executor = executor;
-        this.executor.setStartingState(stateTree);
-        this.executor.execute();
-    }
-
-    public Set<GameState<C>> getGameStateSet() {
-        Set<GameState<C>> visited = new HashSet<>();
-        iterMachine(stateTree, visited, null);
-        return visited;
+    public GameExecutor<C> executor() {
+        if( executor == null) executor = new GameExecutor<>(this);
+        return executor;
     }
 
     public void apply(IterationAction<C> action) {
-        iterMachine(stateTree, new LinkedList<>(), action);
-    }
-
-    private void iterMachine(GameState<C> start, Collection<GameState<C>> visited, IterationAction<C> action) {
-        if (!visited.contains(start)) {
-            visited.add(start);
-            if (action != null) action.execute(start);
-        } else {
-            return;
-        }
-
-        for (GameStateCondition<C> i : start.getNextGameStates()) {
-            iterMachine(i.getResultState(), visited, action);
-        }
+        getStates().forEach(action::execute);
     }
 
 

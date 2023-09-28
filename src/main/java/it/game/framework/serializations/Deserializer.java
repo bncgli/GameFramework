@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 /**
- * The Deserializer loads a gamestatetree from a file
+ * The Deserializer loads a GameState<C>tree from a file
  */
 @Slf4j
 public final class Deserializer {
