@@ -1,5 +1,6 @@
 package it.game.framework;
 
+import it.game.framework.builders.YamlBuilder;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.executors.MonitoredExecutor;
@@ -22,7 +23,7 @@ public class gameFrameworkAppTest {
         public int spinResult = 0;
     }
 
-    public static class LoadPlayerData extends GameState<TestContext> {
+    public static class LoadData extends GameState<TestContext> {
 
         @Override
         public void execute(TestContext context) throws GameException {
@@ -30,7 +31,7 @@ public class gameFrameworkAppTest {
         }
     }
 
-    public static class Spin extends GameState<TestContext> {
+    public static class Elaboration extends GameState<TestContext> {
 
         @Override
         public void execute(TestContext context) throws GameException {
@@ -38,32 +39,31 @@ public class gameFrameworkAppTest {
                 System.out.println("Executing freeSpin");
                 return;
             }
-            System.out.println("Executed Spin with result: " + context.spinResult);
+            System.out.println("Executed Elaboration with result: " + context.spinResult);
         }
     }
 
-    public static class CalculateFreeSpin extends GameState<TestContext> {
+    public static class StoreData extends GameState<TestContext> {
 
         @Override
         public void execute(TestContext context) throws GameException {
             context.fs--;
-            System.out.println("Executed CalculateFreeSpin, remaining freespin: " + context.fs);
+            System.out.println("Executed StoreData, remaining freespin: " + context.fs);
         }
     }
 
-    public static class CalculateNormalSpin extends GameState<TestContext> {
+    public static class SendData extends GameState<TestContext> {
 
         @Override
         public void execute(TestContext context) throws GameException {
-            System.out.println("Executed CalculateNormalSpin");
+            System.out.println("Executed SendData");
             if (context.spinResult > 5) {
                 context.fs = 3;
-                System.out.println("Won 3 freeSpin");
             }
         }
     }
 
-    public static class UpdatePlayerData extends GameState<TestContext> {
+    public static class UpdateData extends GameState<TestContext> {
 
         @Override
         public void execute(TestContext context) throws GameException {
@@ -80,31 +80,36 @@ public class gameFrameworkAppTest {
         testContext = new TestContext();
         machine = new StateMachine<>(testContext);
 
-        LoadPlayerData load = new LoadPlayerData();
-        Spin spin = new Spin();
-        CalculateFreeSpin calcFree = new CalculateFreeSpin();
-        CalculateNormalSpin calcNorm = new CalculateNormalSpin();
-        UpdatePlayerData update = new UpdatePlayerData();
+        LoadData load = new LoadData();
+        Elaboration spin = new Elaboration();
+        StoreData calcFree = new StoreData();
+        SendData calcNorm = new SendData();
+        UpdateData update = new UpdateData();
 
         machine.builder()
                 .addStartingState(load)
                 .addConnectionFromLastState(spin)
                 .addGameState(spin)
-                .addConnectionFromLastState("fs > 0", s -> s.fs > 0, calcFree)
-                .addConnectionFromLastState("fs = 0", s -> s.fs == 0, calcNorm)
+                .addConnectionFromLastState("fs>0", s -> s.fs > 0, calcFree)
+                .addConnectionFromLastState("fs=0", s -> s.fs == 0, calcNorm)
                 .addGameState(calcNorm)
-                .addConnectionFromLastState("fs > 0", s -> s.fs > 0, spin)
+                .addConnectionFromLastState("fs>0", s -> s.fs > 0, spin)
                 .addConnectionFromLastState(update)
                 .addGameState(calcFree)
-                .addConnectionFromLastState("fs > 0", s -> s.fs > 0, spin)
+                .addConnectionFromLastState("fs>0", s -> s.fs > 0, spin)
                 .addConnectionFromLastState(update)
                 .addGameState(update)
                 .build();
 
+
+
+
+    }
+
+    @Test
+    public void testRender(){
         System.out.println(machine.renderer().tree());
         machine.renderer().graph("graph");
-
-
     }
 
     @Test
@@ -131,6 +136,13 @@ public class gameFrameworkAppTest {
 
         System.out.println("Total execution: " + timingMonitor.getTotalExecution());
         System.out.println("Execution of stages:\n" + timingMonitor.getStateExecution().stream().map(v -> v.getClass() + "\t" + v.getKey()).collect(Collectors.joining("\n")));
+    }
+
+    @Test
+    public void testYamlBuilder(){
+        StateMachine<TestContext> m = new StateMachine<>();
+        YamlBuilder<TestContext> builder = new YamlBuilder<>(m,"poc.yaml");
+        builder.build();
     }
 
 }

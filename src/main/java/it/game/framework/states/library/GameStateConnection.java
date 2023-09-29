@@ -5,6 +5,7 @@ import it.game.framework.states.GameState;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.beans.Expression;
 import java.io.Serializable;
 
 @Getter
@@ -14,6 +15,14 @@ public class GameStateConnection<C extends GameContext> implements Serializable 
 
     public interface Expression<C extends GameContext> extends Serializable {
         boolean check(C context);
+    }
+
+    public static class DirectExpression<C extends GameContext> implements Expression<C>{
+
+        @Override
+        public boolean check(C context) {
+            return true;
+        }
     }
 
     private String expressionDescription;
@@ -26,7 +35,7 @@ public class GameStateConnection<C extends GameContext> implements Serializable 
     }
 
     public static <C extends GameContext> GameStateConnection<C> createDirect(GameState<C> startingState, GameState<C> resultState) {
-        return new GameStateConnection<>(null, startingState, (c) -> true, resultState);
+        return new GameStateConnection<>(null, startingState, new DirectExpression<>(), resultState);
     }
 
     public GameStateConnection(String expressionDescription, GameState<C> startingState, Expression<C> expression, GameState<C> resultState) {

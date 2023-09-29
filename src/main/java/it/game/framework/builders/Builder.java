@@ -6,17 +6,17 @@ import it.game.framework.exceptions.GameExceptionsLibrary;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
 import it.game.framework.states.library.GameStateConnection;
-import it.game.framework.states.library.GameStateConnection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
+import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
 public class Builder<C extends GameContext> {
 
-    private final StateMachine<C> machine;
+    protected final StateMachine<C> machine;
     private GameState<C> last;
 
     public Builder(StateMachine<C> machine) {
@@ -98,11 +98,21 @@ public class Builder<C extends GameContext> {
             if (machine.getStates().size() > new HashSet<>(machine.getStates()).size()) {
                 log.warn("Machine's state list contains unnecessary duplicates");
             }
-            //TODO check if there is a direct connection in a list of conditions
-
+            log.info("Checking direct connection not in last place");
+            for(GameState<C> s: machine.getStates()){
+                List<GameStateConnection<C>> connectionsOf = machine.getConnectionsOf(s);
+                for (int i = 0; i < connectionsOf.size(); i++) {
+                    if(connectionsOf.get(i).getExpression() instanceof GameStateConnection.DirectExpression){
+                        if(connectionsOf.size() - 1 > i){
+                            throw new GameException(GameExceptionsLibrary.DIRECT_EXPRESSION_IS_NOT_LAST, String.format("GameState: %s, connection: %s", s.ID(), connectionsOf.get(i)));
+                        }
+                    }
+                }
+            }
+            log.info("Checking connections consistency");
             for (GameStateConnection<C> c : machine.getConnections()) {
                 if (c.getStartingState() == null) {
-                    throw new GameException(GameExceptionsLibrary.CONNECTION_STATINGSTATE_IS_NULL, c.toString());
+                    throw new GameException(GameExceptionsLibrary.CONNECTION_STARTINGSTATE_IS_NULL, c.toString());
                 }
                 if (c.getResultState() == null) {
                     log.warn("Connection's Result state is null the machine will end execution unexpectedly");

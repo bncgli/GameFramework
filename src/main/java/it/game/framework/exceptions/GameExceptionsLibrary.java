@@ -8,8 +8,9 @@ public enum GameExceptionsLibrary {
     //Building exceptions
     MACHINE_BUILDING_EXCEPTION(100, "Machine building exception"),
     STARTING_STATE_IS_NOT_IN_MACHINE_STATES(101, "Starting state is not in the machine's states list"),
-    CONNECTION_STATINGSTATE_IS_NULL(102, "Connection's starting state missing"),
+    CONNECTION_STARTINGSTATE_IS_NULL(102, "Connection's starting state missing"),
     CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES(103, "States in connection are not contained in the machine's states list"),
+    DIRECT_EXPRESSION_IS_NOT_LAST(104, "The connection with a direct expression is not last, expression following this are not reachable"),
 
     //Execution exceptions
     EXECUTION_EXCEPTION(200, "Machine execution exception"),

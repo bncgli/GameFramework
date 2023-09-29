@@ -1,0 +1,17 @@
+# Test machine
+context: TestContext
+states:
+  - name: a
+    classname: GameStateA
+    connections:
+      - expression: x -> x.val1
+        target: b
+      - expression: x -> !x.val1
+        target: c
+  - name: b
+    classname: GameStateB
+    connections:
+      - expression: x -> !x.val1
+        target: c
+  - name: c
+    classname: GameStateC
