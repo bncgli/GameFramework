@@ -23,7 +23,7 @@ import java.util.Objects;
  * The navigator class contains static methods for
  * visualization of the state machine for debugging purposes
  */
-public class MachineRenderer<C extends GameContext> {
+public class MachineRenderer<C extends GameContext<C>> {
 
     private final StateMachine<C> machine;
 

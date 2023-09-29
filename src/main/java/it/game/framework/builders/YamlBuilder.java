@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Slf4j
 @Getter
-public class YamlBuilder<C extends GameContext> extends Builder<C> {
+public class YamlBuilder<C extends GameContext<C>> extends Builder<C> {
 
     private final String yamlPath;
 

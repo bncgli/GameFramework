@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
-public class Builder<C extends GameContext> {
+public class Builder<C extends GameContext<C>> {
 
     protected final StateMachine<C> machine;
     private GameState<C> last;

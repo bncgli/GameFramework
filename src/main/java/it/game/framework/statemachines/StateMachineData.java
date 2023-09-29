@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class StateMachineData<C extends GameContext> implements Serializable {
+public class StateMachineData<C extends GameContext<C>> implements Serializable {
     private GameState<C> startState;
     private List<GameState<C>> states;
     private List<GameStateConnection<C>> connections;

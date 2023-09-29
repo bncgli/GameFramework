@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Slf4j
-public abstract class GameState<C extends GameContext> implements Serializable {
+public abstract class GameState<C extends GameContext<C>> implements Serializable {
 
     public static int globalId = 0;
 

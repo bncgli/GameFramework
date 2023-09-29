@@ -10,7 +10,7 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 @Getter
-public class ThreadedExecutor<C extends GameContext> extends GameExecutor<C> implements Runnable{
+public class ThreadedExecutor<C extends GameContext<C>> extends GameExecutor<C> implements Runnable{
 
     Executor executor;
 

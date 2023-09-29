@@ -5,7 +5,7 @@ import it.game.framework.states.GameState;
 
 import java.io.Serializable;
 
-public interface ExecutorMonitor<C extends GameContext> extends Serializable {
+public interface ExecutorMonitor<C extends GameContext<C>> extends Serializable {
     void beforeLoop();
 
     void beforeExecution(GameState<C> currentState);

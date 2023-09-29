@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @SpringBootTest
 public class gameFrameworkAppTest {
 
-    public static class TestContext extends GameContext {
+    public static class TestContext extends GameContext<C> {
         public int fs = 0;
         public int spinResult = 0;
     }

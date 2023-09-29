@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Getter
 @Slf4j
-public class GameExecutor<C extends GameContext> {
+public class GameExecutor<C extends GameContext<C>> {
 
     @Setter
     protected StateMachine<C> stateMachine;

@@ -25,7 +25,7 @@ import java.util.Optional;
 @Getter
 @Setter
 @Slf4j
-public class SteppedExecutor<C extends GameContext> extends GameExecutor<C> implements Iterable<Optional<GameState<C>>> {
+public class SteppedExecutor<C extends GameContext<C>> extends GameExecutor<C> implements Iterable<Optional<GameState<C>>> {
 
     @AllArgsConstructor
     private class SteppedExecutorIterator implements Iterator<Optional<GameState<C>>> {

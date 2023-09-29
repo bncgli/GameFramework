@@ -12,5 +12,4 @@ import java.io.Serializable;
  */
 public abstract class GameContext implements Serializable  {
 
-    public String spinResult;
 }

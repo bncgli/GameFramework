@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @param <C> context class that must extend GameContext
  */
-public interface IterationAction<C extends GameContext> extends Serializable {
+public interface IterationAction<C extends GameContext<C>> extends Serializable {
 
     /**
      * Interface for Lambdas creation executed in

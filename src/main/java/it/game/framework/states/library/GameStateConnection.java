@@ -5,19 +5,18 @@ import it.game.framework.states.GameState;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.beans.Expression;
 import java.io.Serializable;
 
 @Getter
 @Setter
-public class GameStateConnection<C extends GameContext> implements Serializable {
+public class GameStateConnection<C extends GameContext<C>> implements Serializable {
 
 
-    public interface Expression<C extends GameContext> extends Serializable {
+    public interface Expression<C extends GameContext<C>> extends Serializable {
         boolean check(C context);
     }
 
-    public static class DirectExpression<C extends GameContext> implements Expression<C>{
+    public static class DirectExpression<C extends GameContext<C>> implements Expression<C>{
 
         @Override
         public boolean check(C context) {
@@ -30,11 +29,11 @@ public class GameStateConnection<C extends GameContext> implements Serializable 
     private GameState<C> startingState;
     private GameState<C> resultState;
 
-    public static <C extends GameContext> GameStateConnection<C> create(String expressionDescription, GameState<C> startingState, Expression<C> expression, GameState<C> resultState) {
+    public static <C extends GameContext<C>> GameStateConnection<C> create(String expressionDescription, GameState<C> startingState, Expression<C> expression, GameState<C> resultState) {
         return new GameStateConnection<>(expressionDescription == null ? "No description" : expressionDescription, startingState, expression, resultState);
     }
 
-    public static <C extends GameContext> GameStateConnection<C> createDirect(GameState<C> startingState, GameState<C> resultState) {
+    public static <C extends GameContext<C>> GameStateConnection<C> createDirect(GameState<C> startingState, GameState<C> resultState) {
         return new GameStateConnection<>(null, startingState, new DirectExpression<>(), resultState);
     }
 

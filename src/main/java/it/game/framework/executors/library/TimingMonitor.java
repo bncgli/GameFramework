@@ -7,7 +7,7 @@ import lombok.Getter;
 
 import java.util.*;
 
-public class TimingMonitor<C extends GameContext> implements ExecutorMonitor<C> {
+public class TimingMonitor<C extends GameContext<C>> implements ExecutorMonitor<C> {
 
     @Getter
     private long totalExecution = 0L;

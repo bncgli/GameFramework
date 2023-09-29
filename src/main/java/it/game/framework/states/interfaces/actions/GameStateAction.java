@@ -18,5 +18,5 @@ public interface GameStateAction extends Serializable {
      * @param self the reference to the GameState<C> where the lambda is executed
      * @param context the reference to the context where the lambda is executed
      */
-    <C extends GameContext> void execute(GameState<C> self, C context);
+    <C extends GameContext<C>> void execute(GameState<C> self, C context);
 }

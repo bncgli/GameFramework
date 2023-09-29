@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-public class StateMachine<C extends GameContext> {
+public class StateMachine<C extends GameContext<C>> {
 
     @Getter
     @Setter
