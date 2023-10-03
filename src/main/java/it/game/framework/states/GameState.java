@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Slf4j
-public abstract class GameState<C extends GameContext<C>> implements Serializable {
+public abstract class GameState implements Serializable {
 
     public static int globalId = 0;
 
@@ -38,7 +38,7 @@ public abstract class GameState<C extends GameContext<C>> implements Serializabl
         return String.format("%s.%03d", name, id);
     }
 
-    public abstract void execute(C context) throws GameException;
+    public abstract void execute(GameContext c) throws GameException;
 
     @Override
     public String toString() {
@@ -52,7 +52,7 @@ public abstract class GameState<C extends GameContext<C>> implements Serializabl
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        GameState<C> GameState = (GameState<C>) o;
+        GameState GameState = (GameState) o;
         return this.ID().equals(GameState.ID());
     }
 

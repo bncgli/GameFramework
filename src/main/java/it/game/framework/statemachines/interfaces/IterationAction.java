@@ -9,9 +9,8 @@ import java.io.Serializable;
  * Interface for the creation of lambdas that are executes
  * in during th iteration of GameState<C>s in the statemachine
  *
- * @param <C> context class that must extend GameContext
  */
-public interface IterationAction<C extends GameContext<C>> extends Serializable {
+public interface IterationAction extends Serializable {
 
     /**
      * Interface for Lambdas creation executed in
@@ -19,5 +18,5 @@ public interface IterationAction<C extends GameContext<C>> extends Serializable 
      *
      * @param self the reference to the GameState<C> where the lambda is executed
      */
-    void execute(GameState<C> self);
+    void execute(GameState self);
 }

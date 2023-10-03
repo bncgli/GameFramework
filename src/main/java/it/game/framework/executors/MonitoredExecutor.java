@@ -17,28 +17,27 @@ import lombok.extern.slf4j.Slf4j;
  * of the statemachine. The class can used to monitor what happen when a specific
  * state is active to track bugs.
  *
- * @param <C> The context class that has to extend GameContext
  */
 @Getter
 @Setter
 @Slf4j
-public class MonitoredExecutor<C extends GameContext<C>> extends GameExecutor<C> {
+public class MonitoredExecutor extends GameExecutor {
 
-    protected ExecutorMonitor<C> monitor;
+    protected ExecutorMonitor monitor;
 
-    public MonitoredExecutor(ExecutorMonitor<C> monitor) {
-        this(monitor, null);
+    public MonitoredExecutor(ExecutorMonitor monitor, StateMachine stateMachine, GameContext context) {
+        super(stateMachine, context);
+        this.monitor = monitor;
     }
 
-    public MonitoredExecutor(ExecutorMonitor<C> monitor, StateMachine<C> stateMachine) {
-        super(stateMachine);
-        this.monitor = monitor;
+    public static void execute(ExecutorMonitor monitor,StateMachine machine, GameContext context){
+        new MonitoredExecutor(monitor,machine, context).execute();
     }
 
     /**
      * Execute overrides the execute method.
-     * This method iters the state machine until the end of the GameState<C>s
-     * or until a GameState<C> returns an error. Each step is sended to
+     * This method iters the state machine until the end of the GameStates
+     * or until a GameState returns an error. Each step is sended to
      * the monitor interface.
      */
     @Override
@@ -54,12 +53,12 @@ public class MonitoredExecutor<C extends GameContext<C>> extends GameExecutor<C>
             currentGameState = stateMachine.getStartState();
             monitor.beforeLoop();
             while (currentGameState != null) {
-                log.info("Entering GameState<C>: {}", currentGameState.getName());
+                log.info("Entering GameState: {}", currentGameState.getName());
                 monitor.beforeExecution(currentGameState);
-                currentGameState.execute(stateMachine.getContext());
+                currentGameState.execute(context);
                 monitor.afterExecution(currentGameState);
-                log.info("Exiting GameState<C>: {}", currentGameState.getName());
-                GameState<C> nextGameState = getNextGameState();
+                log.info("Exiting GameState: {}", currentGameState.getName());
+                GameState nextGameState = getNextGameState();
                 monitor.nextSelectedGameState(currentGameState, nextGameState);
                 currentGameState = nextGameState;
             }

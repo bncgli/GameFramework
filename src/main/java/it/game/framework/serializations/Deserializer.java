@@ -1,6 +1,7 @@
 package it.game.framework.serializations;
 
 import it.game.framework.exceptions.GameException;
+import it.game.framework.statemachines.StateMachineData;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
@@ -21,7 +22,7 @@ public final class Deserializer {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static <O> O load(String filename, Class<O> className) {
+    public static StateMachineData load(String filename) {
         try {
             FileInputStream file = new FileInputStream(filename + ((filename.contains(".gfobject")) ? "" : ".gfobject"));
             ObjectInputStream in = new ObjectInputStream(file);
@@ -31,7 +32,7 @@ public final class Deserializer {
 
             log.info("Object deserialized");
 
-            return className.cast(object);
+            return (StateMachineData) object;
         } catch (Exception e) {
             log.error(GameException.format(e));
         }

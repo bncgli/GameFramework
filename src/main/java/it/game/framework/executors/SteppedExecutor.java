@@ -20,16 +20,15 @@ import java.util.Optional;
  * of the statemachine. The class can used to monitor what happen when a specific
  * state is active to track bugs.
  *
- * @param <C> The context class that has to extend GameContext
  */
 @Getter
 @Setter
 @Slf4j
-public class SteppedExecutor<C extends GameContext<C>> extends GameExecutor<C> implements Iterable<Optional<GameState<C>>> {
+public class SteppedExecutor extends GameExecutor implements Iterable<Optional<GameState>> {
 
     @AllArgsConstructor
-    private class SteppedExecutorIterator implements Iterator<Optional<GameState<C>>> {
-        SteppedExecutor<C> executor;
+    private class SteppedExecutorIterator implements Iterator<Optional<GameState>> {
+        SteppedExecutor executor;
 
         @Override
         public boolean hasNext() {
@@ -37,7 +36,7 @@ public class SteppedExecutor<C extends GameContext<C>> extends GameExecutor<C> i
         }
 
         @Override
-        public Optional<GameState<C>> next() {
+        public Optional<GameState> next() {
             executor.execute();
             return Optional.ofNullable(executor.currentGameState);
         }
@@ -49,13 +48,10 @@ public class SteppedExecutor<C extends GameContext<C>> extends GameExecutor<C> i
 
     Steps currentStep = Steps.START;
 
-    public SteppedExecutor() {
-        this(null);
+    public SteppedExecutor(StateMachine stateMachine, GameContext context) {
+        super(stateMachine, context);
     }
 
-    public SteppedExecutor(StateMachine<C> stateMachine) {
-        super(stateMachine);
-    }
 
 
     public void restart() {
@@ -65,7 +61,7 @@ public class SteppedExecutor<C extends GameContext<C>> extends GameExecutor<C> i
     /**
      * Execute overrides the execute method.
      * This method executes the state machine one state a the time
-     * or until a GameState<C> returns an error. Everytime is called it executes
+     * or until a GameState returns an error. Everytime is called it executes
      * a new state.
      */
     @Override
@@ -84,9 +80,9 @@ public class SteppedExecutor<C extends GameContext<C>> extends GameExecutor<C> i
                     currentStep = Steps.LOOP;
                     break;
                 case LOOP:
-                    log.info("Entering GameState<C>: {}", currentGameState.getName());
-                    currentGameState.execute(stateMachine.getContext());
-                    log.info("Exiting GameState<C>: {}", currentGameState.getName());
+                    log.info("Entering GameState: {}", currentGameState.getName());
+                    currentGameState.execute(context);
+                    log.info("Exiting GameState: {}", currentGameState.getName());
                     currentGameState = getNextGameState();
                     if (currentGameState == null) currentStep = Steps.END;
                     break;
@@ -99,7 +95,7 @@ public class SteppedExecutor<C extends GameContext<C>> extends GameExecutor<C> i
     }
 
     @Override
-    public Iterator<Optional<GameState<C>>> iterator() {
+    public Iterator<Optional<GameState>> iterator() {
         return new SteppedExecutorIterator(this);
     }
 }

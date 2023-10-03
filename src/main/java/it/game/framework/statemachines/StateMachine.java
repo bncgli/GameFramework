@@ -1,16 +1,10 @@
 package it.game.framework.statemachines;
 
-import it.game.framework.builders.Builder;
-import it.game.framework.contexts.GameContext;
-import it.game.framework.renderers.MachineRenderer;
 import it.game.framework.serializations.Deserializer;
 import it.game.framework.serializations.Serializer;
 import it.game.framework.statemachines.interfaces.IterationAction;
 import it.game.framework.states.GameState;
-import it.game.framework.executors.GameExecutor;
-import it.game.framework.states.library.GameStateConnection;
-import lombok.Getter;
-import lombok.Setter;
+import it.game.framework.stateconnections.GameStateConnection;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -19,91 +13,48 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-public class StateMachine<C extends GameContext<C>> {
+public class StateMachine {
+    
+    private StateMachineData data;
 
-    @Getter
-    @Setter
-    private C context;
-    private StateMachineData<C> data;
-
-    private Builder<C> builder;
-    private GameExecutor<C> executor;
-    private MachineRenderer<C> renderer;
-
-    public StateMachine(GameState<C> startState, List<GameState<C>> states, List<GameStateConnection<C>> connections, C context, Builder<C> builder, GameExecutor<C> executor, MachineRenderer<C> renderer) {
-        this.data = new StateMachineData<>(startState, states, connections);
-        this.context = context;
-        this.builder = builder;
-        this.executor = executor;
-        this.renderer = renderer;
-    }
-
-    public StateMachine(C context) {
-        this(
-                null,
-                new ArrayList<>(),
-                new ArrayList<>(),
-                context,
-                null,
-                null,
-                null
-        );
-        this.builder = new Builder<>(this);
-        this.executor = new GameExecutor<>(this);
-        this.renderer = new MachineRenderer<>(this);
+    public StateMachine(GameState startState, List<GameState> states, List<GameStateConnection> connections) {
+        this.data = new StateMachineData(startState, states, connections);
     }
 
     public StateMachine() {
         this(
                 null,
                 new ArrayList<>(),
-                new ArrayList<>(),
-                null,
-                null,
-                null,
-                null
+                new ArrayList<>()
         );
-        this.builder = new Builder<>(this);
-        this.executor = new GameExecutor<>(this);
-        this.renderer = new MachineRenderer<>(this);
     }
 
-    public void setExecutor(GameExecutor<C> executor){
-        this.executor = executor;
-        this.executor.setStateMachine(this);
-    }
-
-    public List<GameStateConnection<C>> getConnections() {
+    public List<GameStateConnection> getConnections() {
         return data.getConnections();
     }
 
-    public GameState<C> getStartState() {
+    public GameState getStartState() {
         return data.getStartState();
     }
 
-    public List<GameState<C>> getStates() {
+    public List<GameState> getStates() {
         return data.getStates();
     }
 
-    public void setStartState(GameState<C> startState) {
+    public void setStartState(GameState startState) {
         data.setStartState(startState);
     }
 
-    public void setStates(List<GameState<C>> states) {
+    public void setStates(List<GameState> states) {
         data.setStates(states);
     }
 
-    public void setConnections(List<GameStateConnection<C>> GameStateConnections) {
+    public void setConnections(List<GameStateConnection> GameStateConnections) {
         data.setConnections(GameStateConnections);
     }
 
-    public List<GameStateConnection<C>> getConnectionsOf(GameState<C> GameState) {
+    public List<GameStateConnection> getConnectionsOf(GameState GameState) {
         return getConnections().stream().filter(v -> v.getStartingState().equals(GameState)).collect(Collectors.toList());
-    }
-
-    public MachineRenderer<C> renderer() {
-        if (renderer == null) renderer = new MachineRenderer<>(this);
-        return renderer;
     }
 
     public void saveTo(String filename) {
@@ -111,20 +62,10 @@ public class StateMachine<C extends GameContext<C>> {
     }
 
     public void loadFrom(String filename) {
-        data = Deserializer.load(filename, data.getClass());
+        data = Deserializer.load(filename);
     }
 
-    public Builder<C> builder() {
-        if (builder == null) builder = new Builder<>(this);
-        return builder;
-    }
-
-    public GameExecutor<C> executor() {
-        if( executor == null) executor = new GameExecutor<>(this);
-        return executor;
-    }
-
-    public void apply(IterationAction<C> action) {
+    public void apply(IterationAction action) {
         getStates().forEach(action::execute);
     }
 

@@ -4,14 +4,14 @@ states:
   - name: a
     classname: GameStateA
     connections:
-      - expression: x -> x.val1
+      - expression: "{{val1:Integer}} > 5"
         target: b
-      - expression: x -> !x.val1
+      - expression: "{{val2:Boolean}}"
         target: c
   - name: b
     classname: GameStateB
     connections:
-      - expression: x -> !x.val1
+      - expression: "{{val3:String}} == \"Ciao\""
         target: c
   - name: c
     classname: GameStateC

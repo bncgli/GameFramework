@@ -10,16 +10,12 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 @Getter
-public class ThreadedExecutor<C extends GameContext<C>> extends GameExecutor<C> implements Runnable{
+public class ThreadedExecutor extends GameExecutor implements Runnable{
 
     Executor executor;
 
-    public ThreadedExecutor() {
-        this(null);
-    }
-
-    public ThreadedExecutor(StateMachine<C> stateMachine) {
-        super(stateMachine);
+    public ThreadedExecutor(StateMachine stateMachine, GameContext context) {
+        super(stateMachine, context);
         executor = Executors.newSingleThreadExecutor();
     }
 

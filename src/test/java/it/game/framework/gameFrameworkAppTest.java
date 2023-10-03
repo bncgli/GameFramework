@@ -1,125 +1,106 @@
 package it.game.framework;
 
+import it.game.framework.builders.StepBuilder;
 import it.game.framework.builders.YamlBuilder;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.executors.MonitoredExecutor;
 import it.game.framework.executors.SteppedExecutor;
 import it.game.framework.executors.library.TimingMonitor;
+import it.game.framework.renderers.Renderer;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @SpringBootTest
 public class gameFrameworkAppTest {
 
-    public static class TestContext extends GameContext<C> {
-        public int fs = 0;
-        public int spinResult = 0;
-    }
-
-    public static class LoadData extends GameState<TestContext> {
+    public static class LoadData extends GameState {
 
         @Override
-        public void execute(TestContext context) throws GameException {
+        public void execute(GameContext c) throws GameException {
             System.out.println("Loading player data into context from db");
         }
     }
 
-    public static class Elaboration extends GameState<TestContext> {
+    public static class Spin extends GameState {
 
         @Override
-        public void execute(TestContext context) throws GameException {
-            if (context.fs > 0) {
-                System.out.println("Executing freeSpin");
-                return;
-            }
-            System.out.println("Executed Elaboration with result: " + context.spinResult);
+        public void execute(GameContext c) throws GameException {
+            System.out.println("Executing the spin");
         }
     }
 
-    public static class StoreData extends GameState<TestContext> {
+    public static class CheckNormalSpin extends GameState {
 
         @Override
-        public void execute(TestContext context) throws GameException {
-            context.fs--;
-            System.out.println("Executed StoreData, remaining freespin: " + context.fs);
+        public void execute(GameContext c) throws GameException {
+            System.out.println("Checking the normal spin results");
         }
     }
 
-    public static class SendData extends GameState<TestContext> {
+    public static class CheckFreeSpin extends GameState {
 
         @Override
-        public void execute(TestContext context) throws GameException {
-            System.out.println("Executed SendData");
-            if (context.spinResult > 5) {
-                context.fs = 3;
-            }
+        public void execute(GameContext c) throws GameException {
+            System.out.println("Checking the free spin results");
         }
     }
 
-    public static class UpdateData extends GameState<TestContext> {
+    public static class UpdatePlayerData extends GameState {
 
         @Override
-        public void execute(TestContext context) throws GameException {
-            System.out.println("Updating data on server");
+        public void execute(GameContext c) throws GameException {
+            System.out.println("Update player data");
         }
     }
 
-    public StateMachine<TestContext> machine;
-    public TestContext testContext;
+
+    public StateMachine machine;
 
 
-    @Before
     public void test() {
-        testContext = new TestContext();
-        machine = new StateMachine<>(testContext);
+        machine = new StateMachine();
 
         LoadData load = new LoadData();
-        Elaboration spin = new Elaboration();
-        StoreData calcFree = new StoreData();
-        SendData calcNorm = new SendData();
-        UpdateData update = new UpdateData();
+        Spin spin = new Spin();
+        CheckNormalSpin calcFree = new CheckNormalSpin();
+        CheckFreeSpin calcNorm = new CheckFreeSpin();
+        UpdatePlayerData update = new UpdatePlayerData();
 
-        machine.builder()
+        StepBuilder.builder(machine)
                 .addStartingState(load)
                 .addConnectionFromLastState(spin)
                 .addGameState(spin)
-                .addConnectionFromLastState("fs>0", s -> s.fs > 0, calcFree)
-                .addConnectionFromLastState("fs=0", s -> s.fs == 0, calcNorm)
+                .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, calcFree)
+                .addConnectionFromLastState("fs=0", (c) -> c.<Integer>get("fs") == 0, calcNorm)
                 .addGameState(calcNorm)
-                .addConnectionFromLastState("fs>0", s -> s.fs > 0, spin)
+                .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, spin)
                 .addConnectionFromLastState(update)
                 .addGameState(calcFree)
-                .addConnectionFromLastState("fs>0", s -> s.fs > 0, spin)
+                .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, spin)
                 .addConnectionFromLastState(update)
                 .addGameState(update)
                 .build();
 
 
-
-
     }
 
     @Test
-    public void testRender(){
-        System.out.println(machine.renderer().tree());
-        machine.renderer().graph("graph");
+    public void testRender() {
+        System.out.println(Renderer.renderer(machine).tree());
+        Renderer.renderer(machine).graph("graph");
     }
 
     @Test
     public void testSteppedExecutor() {
-        testContext.spinResult = 6;
+        SteppedExecutor e = new SteppedExecutor(machine, null);
 
-        machine.setExecutor(new SteppedExecutor<>());
-        SteppedExecutor<TestContext> steppedExecutor = (SteppedExecutor<TestContext>) machine.executor();
-
-        for (Optional<GameState<TestContext>> c : steppedExecutor) {
+        for (var c : e) {
             System.out.println("next step: " + c.map(GameState::ID).orElse("null"));
             System.out.println("\n\n\n");
         }
@@ -127,22 +108,22 @@ public class gameFrameworkAppTest {
 
     @Test
     public void testMonitoredExecutor() {
-        testContext.spinResult = 6;
 
-        TimingMonitor<TestContext> timingMonitor = new TimingMonitor<>();
-        machine.setExecutor(new MonitoredExecutor<>(timingMonitor));
-
-        machine.executor().execute();
+        TimingMonitor timingMonitor = new TimingMonitor();
+        MonitoredExecutor.execute(timingMonitor, machine, null);
 
         System.out.println("Total execution: " + timingMonitor.getTotalExecution());
         System.out.println("Execution of stages:\n" + timingMonitor.getStateExecution().stream().map(v -> v.getClass() + "\t" + v.getKey()).collect(Collectors.joining("\n")));
     }
 
     @Test
-    public void testYamlBuilder(){
-        StateMachine<TestContext> m = new StateMachine<>();
-        YamlBuilder<TestContext> builder = new YamlBuilder<>(m,"poc.yaml");
+    public void testYamlBuilder() {
+        StateMachine m = new StateMachine();
+        YamlBuilder builder = new YamlBuilder(m, "poc.yaml");
         builder.build();
+
+        System.out.println(Renderer.renderer(m).tree());
+        Renderer.renderer(m).graph("yamlBuilderTest");
     }
 
 }

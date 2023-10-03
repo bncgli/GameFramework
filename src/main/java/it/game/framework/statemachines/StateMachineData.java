@@ -1,8 +1,7 @@
 package it.game.framework.statemachines;
 
-import it.game.framework.contexts.GameContext;
 import it.game.framework.states.GameState;
-import it.game.framework.states.library.GameStateConnection;
+import it.game.framework.stateconnections.GameStateConnection;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,12 +10,12 @@ import java.util.List;
 
 @Getter
 @Setter
-public class StateMachineData<C extends GameContext<C>> implements Serializable {
-    private GameState<C> startState;
-    private List<GameState<C>> states;
-    private List<GameStateConnection<C>> connections;
+public class StateMachineData implements Serializable {
+    private GameState startState;
+    private List<GameState> states;
+    private List<GameStateConnection> connections;
 
-    public StateMachineData(GameState<C> startState, List<GameState<C>> states, List<GameStateConnection<C>> connections) {
+    public StateMachineData(GameState startState, List<GameState> states, List<GameStateConnection> connections) {
         this.startState = startState;
         this.states = states;
         this.connections = connections;

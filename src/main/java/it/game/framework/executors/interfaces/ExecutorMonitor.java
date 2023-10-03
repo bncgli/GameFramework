@@ -5,17 +5,17 @@ import it.game.framework.states.GameState;
 
 import java.io.Serializable;
 
-public interface ExecutorMonitor<C extends GameContext<C>> extends Serializable {
+public interface ExecutorMonitor extends Serializable {
     void beforeLoop();
 
-    void beforeExecution(GameState<C> currentState);
+    void beforeExecution(GameState currentState);
 
-    void afterExecution(GameState<C> currentState);
+    void afterExecution(GameState currentState);
 
-    void nextSelectedGameState(GameState<C> currentState, GameState<C> nextGameState);
+    void nextSelectedGameState(GameState currentState, GameState nextGameState);
 
     void afterLoop();
 
-    void caughtException(GameState<C> currentState, Exception e);
+    void caughtException(GameState currentState, Exception e);
 
 }

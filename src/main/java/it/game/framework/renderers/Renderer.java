@@ -2,7 +2,6 @@ package it.game.framework.renderers;
 
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.util.mxCellRenderer;
-import it.game.framework.contexts.GameContext;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
 import lombok.Getter;
@@ -13,6 +12,7 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import javax.imageio.ImageIO;
+import javax.swing.plaf.nimbus.State;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -23,16 +23,20 @@ import java.util.Objects;
  * The navigator class contains static methods for
  * visualization of the state machine for debugging purposes
  */
-public class MachineRenderer<C extends GameContext<C>> {
+public class Renderer {
 
-    private final StateMachine<C> machine;
+    private final StateMachine machine;
 
     @Getter
     private final GraphSpecifics graphSettings;
 
-    public MachineRenderer(StateMachine<C> machine) {
+    public Renderer(StateMachine machine) {
         this.machine = machine;
         graphSettings = new GraphSpecifics();
+    }
+
+    public static Renderer renderer(StateMachine machine){
+        return new Renderer(machine);
     }
 
     /**
@@ -97,7 +101,7 @@ public class MachineRenderer<C extends GameContext<C>> {
 
     public String tree() {
         StringBuilder res = new StringBuilder();
-        for (GameState<C> s : machine.getStates()) {
+        for (GameState s : machine.getStates()) {
             res.append(s.ID()).append("\n");
             machine.getConnectionsOf(s).forEach(v->res.append("    ").append(v).append("\n"));
         }
@@ -106,7 +110,7 @@ public class MachineRenderer<C extends GameContext<C>> {
 
     /**
      * Renders a graph with the logic structure of the machine.
-     * WARNING: The program rely on the name of the GameState<C> to create nodes,
+     * WARNING: The program rely on the name of the GameState to create nodes,
      * so nodes with the same name are considered the same one, So a good
      * nomenclature is recommended.
      *

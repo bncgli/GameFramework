@@ -1,11 +1,12 @@
 package it.game.framework.builders;
 
-import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.exceptions.GameExceptionsLibrary;
+import it.game.framework.stateconnections.expressions.DirectExpression;
+import it.game.framework.stateconnections.interfaces.Expression;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
-import it.game.framework.states.library.GameStateConnection;
+import it.game.framework.stateconnections.GameStateConnection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,17 +15,21 @@ import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
-public class Builder<C extends GameContext<C>> {
+public class StepBuilder {
 
-    protected final StateMachine<C> machine;
-    private GameState<C> last;
+    protected final StateMachine machine;
+    private GameState last;
 
-    public Builder(StateMachine<C> machine) {
+    public static StepBuilder builder(StateMachine machine){
+        return new StepBuilder(machine);
+    }
+
+    public StepBuilder(StateMachine machine) {
         this.machine = machine;
         this.last = null;
     }
 
-    public Builder<C> addStartingState(GameState<C> GameState) {
+    public StepBuilder addStartingState(GameState GameState) {
         if (!machine.getStates().contains(GameState)) {
             machine.getStates().add(0,GameState);
         }
@@ -33,19 +38,19 @@ public class Builder<C extends GameContext<C>> {
         return this;
     }
 
-    public Builder<C> addGameState(GameState<C> GameState) {
+    public StepBuilder addGameState(GameState GameState) {
         machine.getStates().add(GameState);
         last = GameState;
         return this;
     }
 
-    public Builder<C> addConnection(GameStateConnection<C> GameStateConnection) {
+    public StepBuilder addConnection(GameStateConnection GameStateConnection) {
         machine.getConnections().add(GameStateConnection);
         return this;
     }
 
-    public Builder<C> addConnection(String expressionDescription, GameStateConnection.Expression<C> expression, GameState<C> startingState, GameState<C> resultState) {
-        GameStateConnection<C> connection = GameStateConnection.create(
+    public StepBuilder addConnection(String expressionDescription, Expression expression, GameState startingState, GameState resultState) {
+        GameStateConnection connection = GameStateConnection.create(
                 expressionDescription,
                 startingState,
                 expression,
@@ -55,8 +60,8 @@ public class Builder<C extends GameContext<C>> {
         return this;
     }
 
-    public Builder<C> addConnection(GameState<C> startingState, GameState<C> resultState) {
-        GameStateConnection<C> connection = GameStateConnection.createDirect(
+    public StepBuilder addConnection(GameState startingState, GameState resultState) {
+        GameStateConnection connection = GameStateConnection.createDirect(
                 startingState,
                 resultState
         );
@@ -64,8 +69,8 @@ public class Builder<C extends GameContext<C>> {
         return this;
     }
 
-    public Builder<C> addConnectionFromLastState(String expressionDescription, GameStateConnection.Expression<C> expression, GameState<C> resultState) {
-        GameStateConnection<C> connection = GameStateConnection.create(
+    public StepBuilder addConnectionFromLastState(String expressionDescription, Expression expression, GameState resultState) {
+        GameStateConnection connection = GameStateConnection.create(
                 expressionDescription,
                 last,
                 expression,
@@ -75,8 +80,8 @@ public class Builder<C extends GameContext<C>> {
         return this;
     }
 
-    public Builder<C> addConnectionFromLastState(GameState<C> resultState) {
-        GameStateConnection<C> connection = GameStateConnection.createDirect(
+    public StepBuilder addConnectionFromLastState(GameState resultState) {
+        GameStateConnection connection = GameStateConnection.createDirect(
                 last,
                 resultState
         );
@@ -99,10 +104,10 @@ public class Builder<C extends GameContext<C>> {
                 log.warn("Machine's state list contains unnecessary duplicates");
             }
             log.info("Checking direct connection not in last place");
-            for(GameState<C> s: machine.getStates()){
-                List<GameStateConnection<C>> connectionsOf = machine.getConnectionsOf(s);
+            for(GameState s: machine.getStates()){
+                List<GameStateConnection> connectionsOf = machine.getConnectionsOf(s);
                 for (int i = 0; i < connectionsOf.size(); i++) {
-                    if(connectionsOf.get(i).getExpression() instanceof GameStateConnection.DirectExpression){
+                    if(connectionsOf.get(i).getExpression() instanceof DirectExpression){
                         if(connectionsOf.size() - 1 > i){
                             throw new GameException(GameExceptionsLibrary.DIRECT_EXPRESSION_IS_NOT_LAST, String.format("GameState: %s, connection: %s", s.ID(), connectionsOf.get(i)));
                         }
@@ -110,7 +115,7 @@ public class Builder<C extends GameContext<C>> {
                 }
             }
             log.info("Checking connections consistency");
-            for (GameStateConnection<C> c : machine.getConnections()) {
+            for (GameStateConnection c : machine.getConnections()) {
                 if (c.getStartingState() == null) {
                     throw new GameException(GameExceptionsLibrary.CONNECTION_STARTINGSTATE_IS_NULL, c.toString());
                 }

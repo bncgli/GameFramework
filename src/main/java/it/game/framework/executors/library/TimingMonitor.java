@@ -7,7 +7,7 @@ import lombok.Getter;
 
 import java.util.*;
 
-public class TimingMonitor<C extends GameContext<C>> implements ExecutorMonitor<C> {
+public class TimingMonitor implements ExecutorMonitor {
 
     @Getter
     private long totalExecution = 0L;
@@ -21,12 +21,12 @@ public class TimingMonitor<C extends GameContext<C>> implements ExecutorMonitor<
     }
 
     @Override
-    public void beforeExecution(GameState<C> currentState) {
+    public void beforeExecution(GameState currentState) {
         stateExecution.add(0, new AbstractMap.SimpleEntry<>(currentState.ID(), date.getTime()));
     }
 
     @Override
-    public void afterExecution(GameState<C> currentState) {
+    public void afterExecution(GameState currentState) {
         AbstractMap.SimpleEntry<String, Long> last = stateExecution.get(0);
         last.setValue(date.getTime() - last.getValue());
     }
@@ -38,11 +38,11 @@ public class TimingMonitor<C extends GameContext<C>> implements ExecutorMonitor<
     }
 
     @Override
-    public void nextSelectedGameState(GameState<C> currentState, GameState<C> nextGameState) {
+    public void nextSelectedGameState(GameState currentState, GameState nextGameState) {
     }
 
     @Override
-    public void caughtException(GameState<C> currentState, Exception e) {
+    public void caughtException(GameState currentState, Exception e) {
 
     }
 }
