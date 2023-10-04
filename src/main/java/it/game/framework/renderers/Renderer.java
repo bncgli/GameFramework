@@ -4,15 +4,13 @@ import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.util.mxCellRenderer;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
-import javax.swing.plaf.nimbus.State;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -23,20 +21,42 @@ import java.util.Objects;
  * The navigator class contains static methods for
  * visualization of the state machine for debugging purposes
  */
+@Component
 public class Renderer {
+    /**
+     * Sets the orientation of the graph.
+     * the default is 1 (top to bottom),
+     * an alternative is 7(left to right)
+     */
+    private int orientation = 1;
+    /**
+     * Represents the horizontal spacing between cells.
+     * The default value is 100, when condition descriptions
+     * overlap is better to increase this value to make space
+     * for them.
+     */
+    private double horizontalSpacing = 100;
+    /**
+     * Represents the vertical spacing between cells.
+     * The default value is 50.
+     */
+    private double verticalSpacing = 50;
+    /**
+     * The scale of the rendered image.
+     * The default scale is 3.
+     */
+    private int graphScale = 3;
 
-    private final StateMachine machine;
-
-    @Getter
-    private final GraphSpecifics graphSettings;
-
-    public Renderer(StateMachine machine) {
-        this.machine = machine;
-        graphSettings = new GraphSpecifics();
-    }
-
-    public static Renderer renderer(StateMachine machine){
-        return new Renderer(machine);
+    public Renderer(
+            @Value("${game.framework.renderer.orientation}") String orientation,
+            @Value("${game.framework.renderer.horizontal_spacing}") double horizontalSpacing,
+            @Value("${game.framework.renderer.vertical_spacing}") double verticalSpacing,
+            @Value("${game.framework.renderer.image_scale}") int graphScale
+    ) {
+        this.orientation = (orientation.compareTo("horizontal") == 0 ? 7 : 1);
+        this.horizontalSpacing = horizontalSpacing;
+        this.verticalSpacing = verticalSpacing;
+        this.graphScale = graphScale;
     }
 
     /**
@@ -61,49 +81,11 @@ public class Renderer {
         }
     }
 
-    /**
-     * GraphSpecifics contains a list of variables that are necessary for the
-     * graph method to render the statemachine.
-     */
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class GraphSpecifics {
-        /**
-         * Sets the orientation of the graph.
-         * the default is 1 (top to bottom),
-         * an alternative is 7(left to right)
-         */
-        private int orientation = 1;
-        /**
-         * Represents the horizontal spacing between cells.
-         * The default value is 100, when condition descriptions
-         * overlap is better to increase this value to make space
-         * for them.
-         */
-        private double horizontalSpacing = 100;
-        /**
-         * Represents the vertical spacing between cells.
-         * The default value is 50.
-         */
-        private double verticalSpacing = 50;
-        /**
-         * The background color of the image.
-         * The default color is WHITE.
-         */
-        private Color backgroundColor = Color.WHITE;
-        /**
-         * The scale of the rendered image.
-         * The default scale is 3.
-         */
-        private int graphScale = 3;
-    }
-
-    public String tree() {
+    public String renderTree(StateMachine machine) {
         StringBuilder res = new StringBuilder();
         for (GameState s : machine.getStates()) {
             res.append(s.ID()).append("\n");
-            machine.getConnectionsOf(s).forEach(v->res.append("    ").append(v).append("\n"));
+            machine.getConnectionsOf(s).forEach(v -> res.append("    ").append(v).append("\n"));
         }
         return res.toString();
     }
@@ -116,7 +98,7 @@ public class Renderer {
      *
      * @param filename (default "graph") the name of the file, written without extension
      */
-    public void graph(String filename) {
+    public void renderGraph(StateMachine machine, String filename) {
         DefaultDirectedGraph<String, ConditionEdge> graph = new DefaultDirectedGraph<>(ConditionEdge.class);
         machine.getStates().forEach(v -> graph.addVertex(v.ID()));
         machine.getConnections().forEach(v -> graph.addEdge(
@@ -127,16 +109,16 @@ public class Renderer {
 
         JGraphXAdapter<String, ConditionEdge> graphAdapter = new JGraphXAdapter<>(graph);
         mxHierarchicalLayout layout = new mxHierarchicalLayout(graphAdapter);
-        layout.setOrientation(graphSettings.getOrientation());
-        layout.setIntraCellSpacing(graphSettings.getHorizontalSpacing());
-        layout.setInterRankCellSpacing(graphSettings.getVerticalSpacing());
+        layout.setOrientation(orientation);
+        layout.setIntraCellSpacing(horizontalSpacing);
+        layout.setInterRankCellSpacing(verticalSpacing);
         layout.execute(graphAdapter.getDefaultParent());
 
         BufferedImage image = mxCellRenderer.createBufferedImage(
                 graphAdapter,
                 null,
-                graphSettings.getGraphScale(),
-                graphSettings.getBackgroundColor(),
+                graphScale,
+                Color.WHITE,
                 true,
                 null
         );

@@ -12,11 +12,15 @@ import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.stream.Collectors;
 
-@SpringBootTest
+@RunWith(SpringRunner.class)
+@SpringBootTest()
 public class gameFrameworkAppTest {
 
     public static class LoadData extends GameState {
@@ -62,7 +66,7 @@ public class gameFrameworkAppTest {
 
     public StateMachine machine;
 
-
+    @Before
     public void test() {
         machine = new StateMachine();
 
@@ -90,10 +94,14 @@ public class gameFrameworkAppTest {
 
     }
 
+    @Autowired
+    Renderer renderer;
+
     @Test
     public void testRender() {
-        System.out.println(Renderer.renderer(machine).tree());
-        Renderer.renderer(machine).graph("graph");
+
+        System.out.println(renderer.renderTree(machine));
+        renderer.renderGraph(machine, "graph");
     }
 
     @Test
@@ -122,8 +130,8 @@ public class gameFrameworkAppTest {
         YamlBuilder builder = new YamlBuilder(m, "poc.yaml");
         builder.build();
 
-        System.out.println(Renderer.renderer(m).tree());
-        Renderer.renderer(m).graph("yamlBuilderTest");
+        System.out.println(renderer.renderTree(m));
+        renderer.renderGraph(m, "yamlBuilderTest");
     }
 
 }
