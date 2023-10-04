@@ -7,8 +7,10 @@ import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -21,38 +23,19 @@ import java.util.Optional;
  * state is active to track bugs.
  *
  */
+@Slf4j
 @Getter
 @Setter
-@Slf4j
-public class SteppedExecutor extends GameExecutor implements Iterable<Optional<GameState>> {
-
-    @AllArgsConstructor
-    private class SteppedExecutorIterator implements Iterator<Optional<GameState>> {
-        SteppedExecutor executor;
-
-        @Override
-        public boolean hasNext() {
-            return executor.currentStep != Steps.END;
-        }
-
-        @Override
-        public Optional<GameState> next() {
-            executor.execute();
-            return Optional.ofNullable(executor.currentGameState);
-        }
-    }
+@AllArgsConstructor
+@NoArgsConstructor
+@Component
+public class SteppedExecutor extends GameExecutor implements Iterable<Optional<GameState>>, Iterator<Optional<GameState>> {
 
     public enum Steps {
         START, LOOP, END;
     }
 
     Steps currentStep = Steps.START;
-
-    public SteppedExecutor(StateMachine stateMachine, GameContext context) {
-        super(stateMachine, context);
-    }
-
-
 
     public void restart() {
         currentStep = Steps.START;
@@ -69,13 +52,8 @@ public class SteppedExecutor extends GameExecutor implements Iterable<Optional<G
         try {
             switch (currentStep) {
                 case START:
-                    if (stateMachine == null) {
-                        throw new GameException(GameExceptionsLibrary.STATEMACHINE_IS_NULL);
-                    }
+                    executionChecks();
                     log.info("Executing state machine");
-                    if (stateMachine.getStartState() == null) {
-                        throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NULL);
-                    }
                     currentGameState = stateMachine.getStartState();
                     currentStep = Steps.LOOP;
                     break;
@@ -95,7 +73,18 @@ public class SteppedExecutor extends GameExecutor implements Iterable<Optional<G
     }
 
     @Override
+    public boolean hasNext() {
+        return currentStep != Steps.END;
+    }
+
+    @Override
+    public Optional<GameState> next() {
+        execute();
+        return Optional.ofNullable(currentGameState);
+    }
+
+    @Override
     public Iterator<Optional<GameState>> iterator() {
-        return new SteppedExecutorIterator(this);
+        return this;
     }
 }

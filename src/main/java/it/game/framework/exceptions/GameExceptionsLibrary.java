@@ -15,11 +15,14 @@ public enum GameExceptionsLibrary {
     //Execution exceptions
     EXECUTION_EXCEPTION(9200, "Machine execution exception"),
     STATEMACHINE_IS_NULL(9201, "The state machine reference inside the executor is null"),
-    STARTING_STATE_IS_NULL(9202, "Machine's starting state is null"),
+    CONTEXT_IS_NULL(9202, "The context reference inside the executor is null"),
+    STARTING_STATE_IS_NULL(9203, "Machine's starting state is null"),
+    EXECUTOR_MONITOR_IS_NULL(9204, "The executor monitor is null"),
+    GAMEEXECUTOR_IS_NULL(9205, "The GameExecutor instance inside the ThreadedExecutor is null"),
 
     //GameContext Exceptions
     CONTEXT_EXCEPTION(9300, "GameContext exception"),
-    CONTEXT_CASTING_EXCEPTION(9301, "Object cannot be casted in the specified ")
+    CONTEXT_CASTING_EXCEPTION(9301, "Object cannot be casted in the specified class")
     ;
 
 

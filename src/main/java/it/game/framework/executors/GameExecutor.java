@@ -3,12 +3,15 @@ package it.game.framework.executors;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.exceptions.GameExceptionsLibrary;
+import it.game.framework.stateconnections.GameStateConnection;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
-import it.game.framework.stateconnections.GameStateConnection;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -19,27 +22,18 @@ import java.util.List;
  * It takes the first GameState of the statemachine and execute it, then
  * It chooses the first GameStateConnection that returns true end sets it
  * as currentState and starts over until there are no more GameStates
- *
  */
-@Getter
 @Slf4j
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Component
 public class GameExecutor {
 
-    @Setter
-    protected StateMachine stateMachine;
-
-    protected GameContext context;
     protected GameState currentGameState;
-
-    public GameExecutor(StateMachine stateMachine, GameContext context) {
-        this.stateMachine = stateMachine;
-        this.context = context;
-        this.currentGameState = null;
-    }
-
-    public static void execute(StateMachine machine, GameContext context){
-        new GameExecutor(machine, context).execute();
-    }
+    protected StateMachine stateMachine;
+    protected GameContext context;
 
     /**
      * Execute overrides the GameState method.
@@ -48,14 +42,9 @@ public class GameExecutor {
      */
     public void execute() {
         try {
-            if (stateMachine == null) {
-                throw new GameException(GameExceptionsLibrary.STATEMACHINE_IS_NULL);
-            }
+            executionChecks();
             log.info("Executing state machine");
-            if (stateMachine.getStartState() == null) {
-                throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NULL);
-            }
-            currentGameState = stateMachine.getStartState();
+            if (currentGameState == null) currentGameState = stateMachine.getStartState();
             while (currentGameState != null) {
                 log.info("Entering GameState: {}", currentGameState.getName());
                 currentGameState.execute(context);
@@ -84,5 +73,18 @@ public class GameExecutor {
         }
         return null;
     }
+
+    protected void executionChecks() throws GameException {
+        if (stateMachine == null) {
+            throw new GameException(GameExceptionsLibrary.STATEMACHINE_IS_NULL);
+        }
+        if (context == null) {
+            throw new GameException(GameExceptionsLibrary.CONTEXT_IS_NULL);
+        }
+        if (stateMachine.getStartState() == null) {
+            throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NULL);
+        }
+    }
+
 
 }

@@ -6,9 +6,12 @@ import it.game.framework.exceptions.GameExceptionsLibrary;
 import it.game.framework.executors.interfaces.ExecutorMonitor;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * This class is intended for debugging purpose only,
@@ -18,21 +21,15 @@ import lombok.extern.slf4j.Slf4j;
  * state is active to track bugs.
  *
  */
+@Slf4j
 @Getter
 @Setter
-@Slf4j
+@AllArgsConstructor
+@NoArgsConstructor
+@Component
 public class MonitoredExecutor extends GameExecutor {
 
     protected ExecutorMonitor monitor;
-
-    public MonitoredExecutor(ExecutorMonitor monitor, StateMachine stateMachine, GameContext context) {
-        super(stateMachine, context);
-        this.monitor = monitor;
-    }
-
-    public static void execute(ExecutorMonitor monitor,StateMachine machine, GameContext context){
-        new MonitoredExecutor(monitor,machine, context).execute();
-    }
 
     /**
      * Execute overrides the execute method.
@@ -43,13 +40,7 @@ public class MonitoredExecutor extends GameExecutor {
     @Override
     public void execute() {
         try {
-            if (stateMachine == null) {
-                throw new GameException(GameExceptionsLibrary.STATEMACHINE_IS_NULL);
-            }
             log.info("Executing state machine");
-            if (stateMachine.getStartState() == null) {
-                throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NULL);
-            }
             currentGameState = stateMachine.getStartState();
             monitor.beforeLoop();
             while (currentGameState != null) {
@@ -70,4 +61,11 @@ public class MonitoredExecutor extends GameExecutor {
         log.info("Ending state machine execution");
     }
 
+    @Override
+    protected void executionChecks() throws GameException {
+        if (monitor == null){
+            throw new GameException(GameExceptionsLibrary.EXECUTOR_MONITOR_IS_NULL);
+        }
+        super.executionChecks();
+    }
 }

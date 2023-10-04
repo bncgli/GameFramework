@@ -104,21 +104,31 @@ public class gameFrameworkAppTest {
         renderer.renderGraph(machine, "graph");
     }
 
+    @Autowired
+    SteppedExecutor stepExecutor;
+
     @Test
     public void testSteppedExecutor() {
-        SteppedExecutor e = new SteppedExecutor(machine, null);
+        stepExecutor.setStateMachine(machine);
+        stepExecutor.setContext(null);
 
-        for (var c : e) {
+        for (var c : stepExecutor) {
             System.out.println("next step: " + c.map(GameState::ID).orElse("null"));
             System.out.println("\n\n\n");
         }
     }
 
+    @Autowired
+    MonitoredExecutor monitoredExecutor;
+
     @Test
     public void testMonitoredExecutor() {
 
         TimingMonitor timingMonitor = new TimingMonitor();
-        MonitoredExecutor.execute(timingMonitor, machine, null);
+
+        monitoredExecutor.setStateMachine(machine);
+        monitoredExecutor.setContext(null);
+        monitoredExecutor.setMonitor(timingMonitor);
 
         System.out.println("Total execution: " + timingMonitor.getTotalExecution());
         System.out.println("Execution of stages:\n" + timingMonitor.getStateExecution().stream().map(v -> v.getClass() + "\t" + v.getKey()).collect(Collectors.joining("\n")));

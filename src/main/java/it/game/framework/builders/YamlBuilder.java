@@ -27,6 +27,26 @@ import java.util.stream.Collectors;
 @Getter
 public class YamlBuilder {
 
+    @ToString
+    private static class Machine {
+        //public String context;
+        public List<State> states;
+    }
+
+    @ToString
+    private static class State {
+        public String name;
+        public String classname;
+        public List<Connection> connections;
+    }
+
+    @ToString
+    private static class Connection {
+        public String expression;
+        public String target;
+    }
+
+
     private final StateMachine machine;
     private final String yamlPath;
 
@@ -64,7 +84,7 @@ public class YamlBuilder {
 
         LambdaFactory factory = LambdaFactory.get();
         for (State s : machine.states) {
-            if(s.connections == null) continue;
+            if (s.connections == null) continue;
             for (Connection c : s.connections) {
                 GameStateConnection connection = new GameStateConnection(
                         prettifyExpression(c.expression),
@@ -82,8 +102,8 @@ public class YamlBuilder {
     }
 
     private GameState instantiate(String classname) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> o = Class.forName("it.game.framework.testclasses."+classname);
-        var c =  o.getDeclaredConstructor();
+        Class<?> o = Class.forName("it.game.framework.testclasses." + classname);
+        var c = o.getDeclaredConstructor();
         var i = c.newInstance();
         if (!(i instanceof GameState))
             throw new ClassCastException(classname + " cannot be casted into " + GameState.class.getSimpleName());
@@ -115,23 +135,5 @@ public class YamlBuilder {
 
 }
 
-@ToString
-class Machine {
-    //public String context;
-    public List<State> states;
-}
-
-@ToString
-class State {
-    public String name;
-    public String classname;
-    public List<Connection> connections;
-}
-
-@ToString
-class Connection {
-    public String expression;
-    public String target;
-}
 
 
