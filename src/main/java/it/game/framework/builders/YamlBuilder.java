@@ -117,7 +117,7 @@ public class YamlBuilder {
 
 @ToString
 class Machine {
-    public String context;
+    //public String context;
     public List<State> states;
 }
 
