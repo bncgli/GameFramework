@@ -1,5 +1,17 @@
 # Test machine
-context: TestContext
+context:
+  - name: val1
+    type: Integer
+    value: 0
+  - name: val2
+    type: Boolean
+    value:
+  - name: val3
+    type:
+    value:
+
+
+
 states:
   - name: a
     classname: GameStateA
