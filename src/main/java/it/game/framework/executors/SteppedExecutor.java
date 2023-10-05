@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
@@ -35,6 +36,10 @@ public class SteppedExecutor extends GameExecutor implements Iterable<Optional<G
         START, LOOP, END;
     }
 
+    @Value("${game.framework.executor.global_blocking_exception}")
+    protected boolean GlobalExecutionExceptionBlocking;
+    @Value("${game.framework.executor.stepped_executor_blocking_exception}")
+    private boolean thisExecutionExceptionBlocking;
     Steps currentStep = Steps.START;
 
     public void restart() {
@@ -58,10 +63,24 @@ public class SteppedExecutor extends GameExecutor implements Iterable<Optional<G
                     currentStep = Steps.LOOP;
                     break;
                 case LOOP:
-                    log.info("Entering GameState: {}", currentGameState.getName());
-                    currentGameState.execute(context);
-                    log.info("Exiting GameState: {}", currentGameState.getName());
-                    currentGameState = getNextGameState();
+                    Exception caught = null;
+                    try {
+                        log.info("Entering GameState: {}", currentGameState.getName());
+                        currentGameState.execute(context);
+                        log.info("Exiting GameState: {}", currentGameState.getName());
+                    } catch (Exception e) {
+                        caught = e;
+                        log.error(GameException.format(e, currentGameState.getName()));
+                        if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
+                            log.error("Blocking exception is true, exiting execution");
+                            break;
+                        }
+                    }
+                    if (caught == null) {
+                        currentGameState = getNextGameState();
+                    } else {
+                        currentGameState = getNextExceptionGameState(caught);
+                    }
                     if (currentGameState == null) currentStep = Steps.END;
                     break;
                 case END:

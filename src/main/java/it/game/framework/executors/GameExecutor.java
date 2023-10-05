@@ -3,6 +3,7 @@ package it.game.framework.executors;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.exceptions.GameExceptionsLibrary;
+import it.game.framework.stateconnections.ExceptionStateConnection;
 import it.game.framework.stateconnections.GameStateConnection;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,6 +33,10 @@ import java.util.List;
 @Component
 public class GameExecutor {
 
+    @Value("${game.framework.executor.global_blocking_exception}")
+    protected boolean GlobalExecutionExceptionBlocking;
+    @Value("${game.framework.executor.game_executor_blocking_exception}")
+    private boolean thisExecutionExceptionBlocking;
     protected GameState currentGameState;
     protected StateMachine stateMachine;
     protected GameContext context;
@@ -46,10 +52,24 @@ public class GameExecutor {
             log.info("Executing state machine");
             if (currentGameState == null) currentGameState = stateMachine.getStartState();
             while (currentGameState != null) {
-                log.info("Entering GameState: {}", currentGameState.getName());
-                currentGameState.execute(context);
-                log.info("Exiting GameState: {}", currentGameState.getName());
-                currentGameState = getNextGameState();
+                Exception caught = null;
+                try {
+                    log.info("Entering GameState: {}", currentGameState.getName());
+                    currentGameState.execute(context);
+                    log.info("Exiting GameState: {}", currentGameState.getName());
+                } catch (Exception e) {
+                    caught = e;
+                    log.error(GameException.format(e, currentGameState.getName()));
+                    if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
+                        log.error("Blocking exception is true, exiting execution");
+                        break;
+                    }
+                }
+                if (caught == null) {
+                    currentGameState = getNextGameState();
+                } else {
+                    currentGameState = getNextExceptionGameState(caught);
+                }
             }
         } catch (Exception e) {
             log.error(GameException.format(e, currentGameState.getName()));
@@ -68,6 +88,16 @@ public class GameExecutor {
         List<GameStateConnection> GameStateConnections = stateMachine.getConnectionsOf(currentGameState);
         for (GameStateConnection c : GameStateConnections) {
             if (c.checkExpression(context)) {
+                return c.getResultState();
+            }
+        }
+        return null;
+    }
+
+    protected GameState getNextExceptionGameState(Exception e) throws Exception {
+        List<ExceptionStateConnection> GameStateConnections = stateMachine.getExceptionConnectionsOf(currentGameState);
+        for (ExceptionStateConnection c : GameStateConnections) {
+            if (c.checkExpression(e)) {
                 return c.getResultState();
             }
         }

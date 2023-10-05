@@ -1,16 +1,21 @@
 # Test machine
 states:
+  - globals:
+      - expression: "{{val1:Integer}} < 0"
+        target: b
+      - expression: "{{Exception:9101}}"
+        target: c
   - name: a
-    classname: GameStateA
+    classname: it.game.framework.testclasses.GameStateA
     connections:
       - expression: "{{val1:Integer}} > 5"
         target: b
       - expression: "{{val2:Boolean}}"
         target: c
   - name: b
-    classname: GameStateB
+    classname: it.game.framework.testclasses.GameStateB
     connections:
       - expression: "{{val3:String}} == \"Ciao\""
         target: c
   - name: c
-    classname: GameStateC
+    classname: it.game.framework.testclasses.GameStateC

@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,6 +30,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class MonitoredExecutor extends GameExecutor {
 
+    @Value("${game.framework.executor.global_blocking_exception}")
+    protected boolean GlobalExecutionExceptionBlocking;
+    @Value("${game.framework.executor.monitored_executor_blocking_exception}")
+    private boolean thisExecutionExceptionBlocking;
     protected ExecutorMonitor monitor;
 
     /**
@@ -44,12 +49,27 @@ public class MonitoredExecutor extends GameExecutor {
             currentGameState = stateMachine.getStartState();
             monitor.beforeLoop();
             while (currentGameState != null) {
-                log.info("Entering GameState: {}", currentGameState.getName());
-                monitor.beforeExecution(currentGameState);
-                currentGameState.execute(context);
-                monitor.afterExecution(currentGameState);
-                log.info("Exiting GameState: {}", currentGameState.getName());
-                GameState nextGameState = getNextGameState();
+                Exception caught = null;
+                try {
+                    log.info("Entering GameState: {}", currentGameState.getName());
+                    monitor.beforeExecution(currentGameState);
+                    currentGameState.execute(context);
+                    monitor.afterExecution(currentGameState);
+                    log.info("Exiting GameState: {}", currentGameState.getName());
+                } catch (Exception e) {
+                    caught = e;
+                    monitor.caughtException(currentGameState, e);
+                    log.error(GameException.format(e, currentGameState.getName()));
+                    if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
+                        break;
+                    }
+                }
+                GameState nextGameState;
+                if (caught == null) {
+                    nextGameState = getNextGameState();
+                } else {
+                    nextGameState = getNextExceptionGameState(caught);
+                }
                 monitor.nextSelectedGameState(currentGameState, nextGameState);
                 currentGameState = nextGameState;
             }

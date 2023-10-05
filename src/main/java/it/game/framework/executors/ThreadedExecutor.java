@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
@@ -34,11 +35,17 @@ public class ThreadedExecutor extends GameExecutor implements Runnable{
     @Override
     public void run() {
         try {
-            if (gameExecutor == null) throw new GameException(GameExceptionsLibrary.GAMEEXECUTOR_IS_NULL);
+            executionChecks();
             gameExecutor.execute();
         }catch (Exception e){
             log.error(GameException.format(e));
         }
+    }
+
+    @Override
+    protected void executionChecks() throws GameException {
+        if (gameExecutor == null) throw new GameException(GameExceptionsLibrary.GAMEEXECUTOR_IS_NULL);
+        gameExecutor.executionChecks();
     }
 
     @Override

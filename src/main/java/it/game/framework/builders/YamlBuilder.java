@@ -102,7 +102,7 @@ public class YamlBuilder {
     }
 
     private GameState instantiate(String classname) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> o = Class.forName("it.game.framework.testclasses." + classname);
+        Class<?> o = Class.forName(classname);
         var c = o.getDeclaredConstructor();
         var i = c.newInstance();
         if (!(i instanceof GameState))
