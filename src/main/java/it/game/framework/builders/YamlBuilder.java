@@ -54,7 +54,7 @@ public class YamlBuilder {
         return new YamlBuilder(machine, yamlPath);
     }
 
-    public YamlBuilder(StateMachine machine, String yamlPath) {
+    private YamlBuilder(StateMachine machine, String yamlPath) {
         this.machine = machine;
         this.yamlPath = yamlPath;
     }

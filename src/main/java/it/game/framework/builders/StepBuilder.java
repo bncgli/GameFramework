@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 
 @Slf4j
-@AllArgsConstructor
 public class StepBuilder {
 
     protected final StateMachine machine;
@@ -24,7 +23,7 @@ public class StepBuilder {
         return new StepBuilder(machine);
     }
 
-    public StepBuilder(StateMachine machine) {
+    private StepBuilder(StateMachine machine) {
         this.machine = machine;
         this.last = null;
     }
