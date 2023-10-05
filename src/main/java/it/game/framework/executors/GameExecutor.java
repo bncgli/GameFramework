@@ -3,6 +3,7 @@ package it.game.framework.executors;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.exceptions.GameExceptionsLibrary;
+import it.game.framework.executors.interfaces.IGameExecutor;
 import it.game.framework.stateconnections.ExceptionStateConnection;
 import it.game.framework.stateconnections.GameStateConnection;
 import it.game.framework.statemachines.StateMachine;
@@ -31,7 +32,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Component
-public class GameExecutor {
+public class GameExecutor implements IGameExecutor {
 
     @Value("${game.framework.executor.global_blocking_exception}")
     protected boolean GlobalExecutionExceptionBlocking;
@@ -46,37 +47,53 @@ public class GameExecutor {
      * This method iters the state machine until the end of the GameState
      * or until a GameState returns an error
      */
+    @Override
     public void execute() {
         try {
-            executionChecks();
+            begin();
             log.info("Executing state machine");
-            if (currentGameState == null) currentGameState = stateMachine.getStartState();
             while (currentGameState != null) {
-                Exception caught = null;
-                try {
-                    log.info("Entering GameState: {}", currentGameState.getName());
-                    currentGameState.execute(context);
-                    log.info("Exiting GameState: {}", currentGameState.getName());
-                } catch (Exception e) {
-                    caught = e;
-                    log.error(GameException.format(e, currentGameState.getName()));
-                    if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
-                        log.error("Blocking exception is true, exiting execution");
-                        break;
-                    }
-                }
-                if (caught == null) {
-                    currentGameState = getNextGameState();
-                } else {
-                    currentGameState = getNextExceptionGameState(caught);
-                }
+               process();
             }
         } catch (Exception e) {
             log.error(GameException.format(e, currentGameState.getName()));
         }
         log.info("Ending state machine execution");
+        end();
     }
 
+    @Override
+    public void begin() throws GameException {
+        executionChecks();
+        if (currentGameState == null) currentGameState = stateMachine.getStartState();
+    }
+
+    @Override
+    public void process() throws Exception {
+        Exception caught = null;
+        try {
+            log.info("Entering GameState: {}", currentGameState.getName());
+            currentGameState.execute(context);
+            log.info("Exiting GameState: {}", currentGameState.getName());
+        } catch (Exception e) {
+            caught = e;
+            log.error(GameException.format(e, currentGameState.getName()));
+            if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
+                log.error("Blocking exception is true, exiting execution");
+                throw new RuntimeException(e);
+            }
+        }
+        if (caught == null) {
+            currentGameState = getNextGameState();
+        } else {
+            currentGameState = getNextExceptionGameState(caught);
+        }
+    }
+
+    @Override
+    public void end(){
+
+    }
 
     /**
      * Iters all the GameStateconditions and return the game state of
@@ -84,7 +101,8 @@ public class GameExecutor {
      *
      * @return The GameState with the condition that returned true
      */
-    protected GameState getNextGameState() throws Exception {
+    @Override
+    public GameState getNextGameState() throws Exception {
         List<GameStateConnection> GameStateConnections = stateMachine.getConnectionsOf(currentGameState);
         for (GameStateConnection c : GameStateConnections) {
             if (c.checkExpression(context)) {
@@ -94,7 +112,8 @@ public class GameExecutor {
         return null;
     }
 
-    protected GameState getNextExceptionGameState(Exception e) throws Exception {
+    @Override
+    public GameState getNextExceptionGameState(Exception e) throws Exception {
         List<ExceptionStateConnection> GameStateConnections = stateMachine.getExceptionConnectionsOf(currentGameState);
         for (ExceptionStateConnection c : GameStateConnections) {
             if (c.checkExpression(e)) {

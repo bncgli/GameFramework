@@ -57,34 +57,17 @@ public class SteppedExecutor extends GameExecutor implements Iterable<Optional<G
         try {
             switch (currentStep) {
                 case START:
-                    executionChecks();
                     log.info("Executing state machine");
-                    currentGameState = stateMachine.getStartState();
+                    begin();
                     currentStep = Steps.LOOP;
                     break;
                 case LOOP:
-                    Exception caught = null;
-                    try {
-                        log.info("Entering GameState: {}", currentGameState.getName());
-                        currentGameState.execute(context);
-                        log.info("Exiting GameState: {}", currentGameState.getName());
-                    } catch (Exception e) {
-                        caught = e;
-                        log.error(GameException.format(e, currentGameState.getName()));
-                        if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
-                            log.error("Blocking exception is true, exiting execution");
-                            break;
-                        }
-                    }
-                    if (caught == null) {
-                        currentGameState = getNextGameState();
-                    } else {
-                        currentGameState = getNextExceptionGameState(caught);
-                    }
+                    process();
                     if (currentGameState == null) currentStep = Steps.END;
                     break;
                 case END:
                     log.info("Ending state machine execution");
+                    end();
             }
         } catch (Exception e) {
             log.error(GameException.format(e, currentGameState.getName()));

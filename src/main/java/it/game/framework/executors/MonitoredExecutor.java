@@ -46,32 +46,10 @@ public class MonitoredExecutor extends GameExecutor {
     public void execute() {
         try {
             log.info("Executing state machine");
-            currentGameState = stateMachine.getStartState();
+            begin();
             monitor.beforeLoop();
             while (currentGameState != null) {
-                Exception caught = null;
-                try {
-                    log.info("Entering GameState: {}", currentGameState.getName());
-                    monitor.beforeExecution(currentGameState);
-                    currentGameState.execute(context);
-                    monitor.afterExecution(currentGameState);
-                    log.info("Exiting GameState: {}", currentGameState.getName());
-                } catch (Exception e) {
-                    caught = e;
-                    monitor.caughtException(currentGameState, e);
-                    log.error(GameException.format(e, currentGameState.getName()));
-                    if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
-                        break;
-                    }
-                }
-                GameState nextGameState;
-                if (caught == null) {
-                    nextGameState = getNextGameState();
-                } else {
-                    nextGameState = getNextExceptionGameState(caught);
-                }
-                monitor.nextSelectedGameState(currentGameState, nextGameState);
-                currentGameState = nextGameState;
+                process();
             }
             monitor.afterLoop();
         } catch (Exception e) {
@@ -79,6 +57,34 @@ public class MonitoredExecutor extends GameExecutor {
             log.error(GameException.format(e, currentGameState.getName()));
         }
         log.info("Ending state machine execution");
+        end();
+    }
+
+    @Override
+    public void process() throws Exception {
+        Exception caught = null;
+        try {
+            log.info("Entering GameState: {}", currentGameState.getName());
+            monitor.beforeExecution(currentGameState);
+            currentGameState.execute(context);
+            monitor.afterExecution(currentGameState);
+            log.info("Exiting GameState: {}", currentGameState.getName());
+        } catch (Exception e) {
+            caught = e;
+            monitor.caughtException(currentGameState, e);
+            log.error(GameException.format(e, currentGameState.getName()));
+            if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
+                throw new RuntimeException(e);
+            }
+        }
+        GameState nextGameState;
+        if (caught == null) {
+            nextGameState = getNextGameState();
+        } else {
+            nextGameState = getNextExceptionGameState(caught);
+        }
+        monitor.nextSelectedGameState(currentGameState, nextGameState);
+        currentGameState = nextGameState;
     }
 
     @Override
