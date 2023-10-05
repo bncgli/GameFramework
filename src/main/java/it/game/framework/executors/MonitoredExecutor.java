@@ -61,7 +61,7 @@ public class MonitoredExecutor extends GameExecutor {
     }
 
     @Override
-    public void process() throws Exception {
+    protected void process() throws Exception {
         Exception caught = null;
         try {
             log.info("Entering GameState: {}", currentGameState.getName());

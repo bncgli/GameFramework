@@ -62,14 +62,12 @@ public class GameExecutor implements IGameExecutor {
         end();
     }
 
-    @Override
-    public void begin() throws GameException {
+    protected void begin() throws GameException {
         executionChecks();
         if (currentGameState == null) currentGameState = stateMachine.getStartState();
     }
 
-    @Override
-    public void process() throws Exception {
+    protected void process() throws Exception {
         Exception caught = null;
         try {
             log.info("Entering GameState: {}", currentGameState.getName());
@@ -90,8 +88,7 @@ public class GameExecutor implements IGameExecutor {
         }
     }
 
-    @Override
-    public void end(){
+    protected void end(){
 
     }
 
@@ -101,8 +98,7 @@ public class GameExecutor implements IGameExecutor {
      *
      * @return The GameState with the condition that returned true
      */
-    @Override
-    public GameState getNextGameState() throws Exception {
+    protected GameState getNextGameState() throws Exception {
         List<GameStateConnection> GameStateConnections = stateMachine.getConnectionsOf(currentGameState);
         for (GameStateConnection c : GameStateConnections) {
             if (c.checkExpression(context)) {
@@ -112,8 +108,7 @@ public class GameExecutor implements IGameExecutor {
         return null;
     }
 
-    @Override
-    public GameState getNextExceptionGameState(Exception e) throws Exception {
+    protected GameState getNextExceptionGameState(Exception e) throws Exception {
         List<ExceptionStateConnection> GameStateConnections = stateMachine.getExceptionConnectionsOf(currentGameState);
         for (ExceptionStateConnection c : GameStateConnections) {
             if (c.checkExpression(e)) {
