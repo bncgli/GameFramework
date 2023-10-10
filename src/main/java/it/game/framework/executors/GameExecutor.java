@@ -3,6 +3,7 @@ package it.game.framework.executors;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.exceptions.GameExceptionsLibrary;
+import it.game.framework.executors.interfaces.ExecutorCallback;
 import it.game.framework.executors.interfaces.IGameExecutor;
 import it.game.framework.stateconnections.ExceptionStateConnection;
 import it.game.framework.stateconnections.GameStateConnection;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -41,25 +43,56 @@ public class GameExecutor implements IGameExecutor {
     protected GameState currentGameState;
     protected StateMachine stateMachine;
     protected GameContext context;
+    protected Optional<ExecutorCallback> callback;
 
     /**
-     * Execute overrides the GameState method.
-     * This method iters the state machine until the end of the GameState
-     * or until a GameState returns an error
+     * Execute overrides the execute method.
+     * This method iters the state machine until the end of the GameStates
+     * or until a GameState returns an error. Each step is sended to
+     * the monitor interface.
      */
     @Override
     public void execute() {
         try {
-            begin();
             log.info("Executing state machine");
+            begin();
+            callback.ifPresent(c -> c.beforeLoop(context));
             while (currentGameState != null) {
-               process();
+                process();
             }
+            callback.ifPresent(c -> c.afterLoop(context));
         } catch (Exception e) {
+            callback.ifPresent(c -> c.caughtException(currentGameState, e, context));
             log.error(GameException.format(e, currentGameState.getName()));
         }
         log.info("Ending state machine execution");
         end();
+    }
+
+    protected void process() throws Exception {
+        Exception caught = null;
+        try {
+            log.info("Entering GameState: {}", currentGameState.getName());
+            callback.ifPresent(c -> c.beforeExecution(currentGameState, context));
+            currentGameState.execute(context);
+            callback.ifPresent(c -> c.afterExecution(currentGameState, context));
+            log.info("Exiting GameState: {}", currentGameState.getName());
+        } catch (Exception e) {
+            caught = e;
+            callback.ifPresent(c -> c.caughtException(currentGameState, e, context));
+            log.error(GameException.format(e, currentGameState.getName()));
+            if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
+                throw new RuntimeException(e);
+            }
+        }
+        GameState nextGameState;
+        if (caught == null) {
+            nextGameState = getNextGameState();
+        } else {
+            nextGameState = getNextExceptionGameState(caught);
+        }
+        callback.ifPresent(c -> c.nextSelectedGameState(currentGameState, nextGameState, context));
+        currentGameState = nextGameState;
     }
 
     protected void begin() throws GameException {
@@ -67,29 +100,16 @@ public class GameExecutor implements IGameExecutor {
         if (currentGameState == null) currentGameState = stateMachine.getStartState();
     }
 
-    protected void process() throws Exception {
-        Exception caught = null;
-        try {
-            log.info("Entering GameState: {}", currentGameState.getName());
-            currentGameState.execute(context);
-            log.info("Exiting GameState: {}", currentGameState.getName());
-        } catch (Exception e) {
-            caught = e;
-            log.error(GameException.format(e, currentGameState.getName()));
-            if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
-                log.error("Blocking exception is true, exiting execution");
-                throw new RuntimeException(e);
-            }
-        }
-        if (caught == null) {
-            currentGameState = getNextGameState();
-        } else {
-            currentGameState = getNextExceptionGameState(caught);
-        }
-    }
-
     protected void end(){
 
+    }
+
+    public ExecutorCallback getCallback() {
+        return callback.orElse(null);
+    }
+
+    public void setCallback(ExecutorCallback callback) {
+       this.callback = Optional.ofNullable(callback);
     }
 
     /**
@@ -100,6 +120,7 @@ public class GameExecutor implements IGameExecutor {
      */
     protected GameState getNextGameState() throws Exception {
         List<GameStateConnection> GameStateConnections = stateMachine.getConnectionsOf(currentGameState);
+        callback.ifPresent(c -> c.connectionChoice(currentGameState, GameStateConnections, context));
         for (GameStateConnection c : GameStateConnections) {
             if (c.checkExpression(context)) {
                 return c.getResultState();
@@ -110,6 +131,7 @@ public class GameExecutor implements IGameExecutor {
 
     protected GameState getNextExceptionGameState(Exception e) throws Exception {
         List<ExceptionStateConnection> GameStateConnections = stateMachine.getExceptionConnectionsOf(currentGameState);
+        callback.ifPresent(c -> c.exceptionConnectionChoice(currentGameState, GameStateConnections, context));
         for (ExceptionStateConnection c : GameStateConnections) {
             if (c.checkExpression(e)) {
                 return c.getResultState();

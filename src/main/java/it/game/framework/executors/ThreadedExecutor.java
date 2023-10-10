@@ -25,7 +25,6 @@ import java.util.concurrent.Executors;
 public class ThreadedExecutor extends GameExecutor implements Runnable{
 
     Executor executor = Executors.newSingleThreadExecutor();
-    GameExecutor gameExecutor = new GameExecutor();
 
     @Override
     public void execute() {
@@ -34,47 +33,7 @@ public class ThreadedExecutor extends GameExecutor implements Runnable{
 
     @Override
     public void run() {
-        try {
-            executionChecks();
-            gameExecutor.execute();
-        }catch (Exception e){
-            log.error(GameException.format(e));
-        }
+        super.execute();
     }
 
-    @Override
-    protected void executionChecks() throws GameException {
-        if (gameExecutor == null) throw new GameException(GameExceptionsLibrary.GAMEEXECUTOR_IS_NULL);
-        gameExecutor.executionChecks();
-    }
-
-    @Override
-    public GameContext getContext() {
-        return gameExecutor.getContext();
-    }
-
-    @Override
-    public GameState getCurrentGameState() {
-        return gameExecutor.getCurrentGameState();
-    }
-
-    @Override
-    public StateMachine getStateMachine() {
-        return gameExecutor.getStateMachine();
-    }
-
-    @Override
-    public void setContext(GameContext context) {
-        gameExecutor.setContext(context);
-    }
-
-    @Override
-    public void setCurrentGameState(GameState currentGameState) {
-        gameExecutor.setCurrentGameState(currentGameState);
-    }
-
-    @Override
-    public void setStateMachine(StateMachine stateMachine) {
-        gameExecutor.setStateMachine(stateMachine);
-    }
 }
