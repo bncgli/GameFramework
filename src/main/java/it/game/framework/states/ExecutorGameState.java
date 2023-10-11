@@ -3,33 +3,23 @@ package it.game.framework.states;
 import it.game.framework.contexts.GameContext;
 import it.game.framework.exceptions.GameException;
 import it.game.framework.executors.GameExecutor;
+import it.game.framework.executors.interfaces.ExecutorCallback;
 import it.game.framework.executors.interfaces.IGameExecutor;
 import it.game.framework.statemachines.StateMachine;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
 public class ExecutorGameState extends GameState {
 
-    private IGameExecutor executor;
-
-    public ExecutorGameState(IGameExecutor executor, StateMachine machine, GameContext context) {
-        super("ExecutorGameState", "Executes a state machine with a relative context");
-        this.executor = executor;
-        executor.setStateMachine(machine);
-        executor.setContext(context);
-    }
+    private final IGameExecutor executor;
 
     public ExecutorGameState(StateMachine machine, GameContext context) {
+        this(machine, context, null);
+    }
+
+    public ExecutorGameState(StateMachine machine, GameContext context, ExecutorCallback callback) {
         super("ExecutorGameState", "Executes a state machine with a relative context");
-        this.executor = new GameExecutor(
-                true,
-                true,
-                null,
-                machine,
-                context
-        );
+        this.executor = new GameExecutor(true, true, null, machine, context, callback);
     }
 
     @Override
@@ -59,5 +49,13 @@ public class ExecutorGameState extends GameState {
 
     public void setContext(GameContext context) {
         executor.setContext(context);
+    }
+
+    public ExecutorCallback getCallback() {
+        return executor.getCallback();
+    }
+
+    public void setCallback(ExecutorCallback callback) {
+        executor.setCallback(callback);
     }
 }

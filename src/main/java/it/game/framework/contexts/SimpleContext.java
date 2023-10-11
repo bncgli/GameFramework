@@ -1,7 +1,7 @@
 package it.game.framework.contexts;
 
+import it.game.framework.exceptions.ExceptionLibrary;
 import it.game.framework.exceptions.GameException;
-import it.game.framework.exceptions.GameExceptionsLibrary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class SimpleContext implements GameContext {
     public <V> V get(String key, Class<V> clazz) throws GameException {
         Object o = objects.get(indexOf(key));
         if (!clazz.isInstance(o))
-            throw new GameException(GameExceptionsLibrary.CONTEXT_CASTING_EXCEPTION, " key: " + key + "(" + o.toString() + " -> " + clazz.getSimpleName() + ")");
+            throw new GameException(ExceptionLibrary.get("CONTEXT_CASTING_EXCEPTION"), " key: " + key + "(" + o.toString() + " -> " + clazz.getSimpleName() + ")");
         return clazz.cast(o);
     }
 

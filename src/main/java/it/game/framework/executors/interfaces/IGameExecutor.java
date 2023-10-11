@@ -19,4 +19,8 @@ public interface IGameExecutor {
     void setStateMachine(StateMachine stateMachine);
 
     void setContext(GameContext context);
+
+    ExecutorCallback getCallback();
+
+    void setCallback(ExecutorCallback callback);
 }

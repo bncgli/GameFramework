@@ -85,7 +85,7 @@ public class Renderer {
         StringBuilder res = new StringBuilder();
         for (GameState s : machine.getStates()) {
             res.append(s.ID()).append("\n");
-            machine.getConnectionsOf(s).forEach(v -> res.append("    ").append(v).append("\n"));
+            machine.getConnectionsOf(s).forEach(v -> res.append("\t").append(v).append("\n"));
         }
         return res.toString();
     }
@@ -101,11 +101,15 @@ public class Renderer {
     public void renderGraph(StateMachine machine, String filename) {
         DefaultDirectedGraph<String, ConditionEdge> graph = new DefaultDirectedGraph<>(ConditionEdge.class);
         machine.getStates().forEach(v -> graph.addVertex(v.ID()));
-        machine.getConnections().forEach(v -> graph.addEdge(
-                v.getStartingState().ID(),
-                v.getResultState().ID(),
-                new ConditionEdge(v.getExpressionDescription())
-        ));
+        machine.getConnections().forEach(v -> {
+            if (v.getStartingState() != null) {
+                graph.addEdge(
+                        v.getStartingState().ID(),
+                        v.getResultState().ID(),
+                        new ConditionEdge(v.getExpressionDescription())
+                );
+            }
+        });
 
         JGraphXAdapter<String, ConditionEdge> graphAdapter = new JGraphXAdapter<>(graph);
         mxHierarchicalLayout layout = new mxHierarchicalLayout(graphAdapter);

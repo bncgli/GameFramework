@@ -1,16 +1,10 @@
 package it.game.framework.executors;
 
-import it.game.framework.contexts.GameContext;
-import it.game.framework.exceptions.GameException;
-import it.game.framework.exceptions.GameExceptionsLibrary;
-import it.game.framework.statemachines.StateMachine;
-import it.game.framework.states.GameState;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;

@@ -1,15 +1,14 @@
 package it.game.framework.executors;
 
 import it.game.framework.contexts.GameContext;
+import it.game.framework.exceptions.ExceptionLibrary;
 import it.game.framework.exceptions.GameException;
-import it.game.framework.exceptions.GameExceptionsLibrary;
 import it.game.framework.executors.interfaces.ExecutorCallback;
 import it.game.framework.executors.interfaces.IGameExecutor;
 import it.game.framework.stateconnections.ExceptionStateConnection;
 import it.game.framework.stateconnections.GameStateConnection;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,7 +30,6 @@ import java.util.Optional;
 @Slf4j
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @Component
 public class GameExecutor implements IGameExecutor {
@@ -44,6 +42,15 @@ public class GameExecutor implements IGameExecutor {
     protected StateMachine stateMachine;
     protected GameContext context;
     protected Optional<ExecutorCallback> callback;
+
+    public GameExecutor(@Value("${game.framework.executor.global_blocking_exception}") boolean globalExecutionExceptionBlocking, @Value("${game.framework.executor.game_executor_blocking_exception}") boolean thisExecutionExceptionBlocking, GameState currentGameState, StateMachine stateMachine, GameContext context, ExecutorCallback callback) {
+        GlobalExecutionExceptionBlocking = globalExecutionExceptionBlocking;
+        this.thisExecutionExceptionBlocking = thisExecutionExceptionBlocking;
+        this.currentGameState = currentGameState;
+        this.stateMachine = stateMachine;
+        this.context = context;
+        this.callback = Optional.ofNullable(callback);
+    }
 
     /**
      * Execute overrides the execute method.
@@ -100,16 +107,18 @@ public class GameExecutor implements IGameExecutor {
         if (currentGameState == null) currentGameState = stateMachine.getStartState();
     }
 
-    protected void end(){
+    protected void end() {
 
     }
 
+    @Override
     public ExecutorCallback getCallback() {
         return callback.orElse(null);
     }
 
+    @Override
     public void setCallback(ExecutorCallback callback) {
-       this.callback = Optional.ofNullable(callback);
+        this.callback = Optional.ofNullable(callback);
     }
 
     /**
@@ -142,13 +151,13 @@ public class GameExecutor implements IGameExecutor {
 
     protected void executionChecks() throws GameException {
         if (stateMachine == null) {
-            throw new GameException(GameExceptionsLibrary.STATEMACHINE_IS_NULL);
+            throw new GameException(ExceptionLibrary.get("STATEMACHINE_IS_NULL"));
         }
         if (context == null) {
-            throw new GameException(GameExceptionsLibrary.CONTEXT_IS_NULL);
+            throw new GameException(ExceptionLibrary.get("CONTEXT_IS_NULL"));
         }
         if (stateMachine.getStartState() == null) {
-            throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NULL);
+            throw new GameException(ExceptionLibrary.get("STARTING_STATE_IS_NULL"));
         }
     }
 

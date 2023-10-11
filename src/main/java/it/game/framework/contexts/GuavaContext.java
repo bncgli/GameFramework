@@ -3,8 +3,8 @@ package it.game.framework.contexts;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Callables;
+import it.game.framework.exceptions.ExceptionLibrary;
 import it.game.framework.exceptions.GameException;
-import it.game.framework.exceptions.GameExceptionsLibrary;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -33,7 +33,7 @@ public class GuavaContext  implements GameContext{
     @Override
     public <V> V get(String key, Class<V> clazz) throws Exception {
         var r = cache.getIfPresent(key);
-        if(!clazz.isInstance(r)) throw new GameException(GameExceptionsLibrary.CONTEXT_CASTING_EXCEPTION);
+        if(!clazz.isInstance(r)) throw new GameException(ExceptionLibrary.get("CONTEXT_CASTING_EXCEPTION"));
         return clazz.cast(r);
     }
 

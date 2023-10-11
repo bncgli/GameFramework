@@ -1,8 +1,7 @@
 package it.game.framework.builders;
 
+import it.game.framework.exceptions.ExceptionLibrary;
 import it.game.framework.exceptions.GameException;
-import it.game.framework.exceptions.GameExceptionsLibrary;
-import it.game.framework.executors.GameExecutor;
 import it.game.framework.stateconnections.DirectStateConnection;
 import it.game.framework.stateconnections.ExceptionStateConnection;
 import it.game.framework.stateconnections.GameStateConnection;
@@ -54,6 +53,7 @@ public class YamlBuilder {
 
     private final StateMachine machine;
     private final String yamlPath;
+    private final List<String> keywordList;
 
     public static YamlBuilder builder(StateMachine machine, String yamlPath) {
         return new YamlBuilder(machine, yamlPath);
@@ -62,6 +62,7 @@ public class YamlBuilder {
     private YamlBuilder(StateMachine machine, String yamlPath) {
         this.machine = machine;
         this.yamlPath = yamlPath;
+        this.keywordList = List.of("GOTO", "goto", "CATCH", "catch", "EXIT", "exit");
     }
 
     public void build() {
@@ -80,8 +81,10 @@ public class YamlBuilder {
     private void generateMachine(Machine machine) throws Exception {
         Map<String, GameState> refs = new HashMap<>();
         refs.put("EXIT", null);
+        refs.put("exit", null);
         for (State s : machine.states) {
             String name = s.name;
+            if(keywordList.contains(name)) throw new GameException(ExceptionLibrary.get("CLASS_NAME_IS_A_KEYWORD"));
             GameState state = instantiate(s.classname);
             refs.put(name, state);
             this.machine.getStates().add(state);
@@ -99,20 +102,20 @@ public class YamlBuilder {
         if (machine.globals != null) {
             for (Connection c : machine.globals) {
                 GameStateConnection connection = getConnection(null, c, refs, factory);
-                if(connection instanceof DirectStateConnection) throw new GameException(GameExceptionsLibrary.DIRECT_CONNECTION_IN_GLOBALS);
+                if(connection instanceof DirectStateConnection) throw new GameException(ExceptionLibrary.get("DIRECT_CONNECTION_IN_GLOBALS"));
                 this.machine.getGlobalConnections().add(connection);
             }
         }
     }
 
     private GameStateConnection getConnection(State s, Connection c, Map<String, GameState> refs, LambdaFactory factory) throws LambdaCreationException {
-        if (c.expression.contains("GOTO")) {
+        if (c.expression.contains("GOTO") || c.expression.contains("goto")) {
             return new DirectStateConnection(
                     s == null ? null : refs.get(s.name),
                     refs.get(c.target)
             );
         }
-        if (c.expression.contains("CATCH")) {
+        if (c.expression.contains("CATCH") || c.expression.contains("catch")) {
             return new ExceptionStateConnection(
                     c.expression,
                     s == null ? null : refs.get(s.name),

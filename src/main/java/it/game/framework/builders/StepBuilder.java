@@ -1,7 +1,7 @@
 package it.game.framework.builders;
 
+import it.game.framework.exceptions.ExceptionLibrary;
 import it.game.framework.exceptions.GameException;
-import it.game.framework.exceptions.GameExceptionsLibrary;
 import it.game.framework.stateconnections.DirectStateConnection;
 import it.game.framework.stateconnections.ExceptionStateConnection;
 import it.game.framework.stateconnections.GameStateConnection;
@@ -125,10 +125,10 @@ public class StepBuilder {
         try {
             log.info("Checking starting state");
             if (machine.getStartState() == null) {
-                throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NULL);
+                throw new GameException(ExceptionLibrary.get("STARTING_STATE_IS_NULL"));
             }
             if (!machine.getStates().contains(machine.getStartState())) {
-                throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NOT_IN_MACHINE_STATES);
+                throw new GameException(ExceptionLibrary.get("STARTING_STATE_IS_NOT_IN_MACHINE_STATES"));
             }
 
             log.info("Checking duplicates in states list");
@@ -139,7 +139,7 @@ public class StepBuilder {
             log.info("Checking direct connections as globals");
             for(GameStateConnection c : machine.getGlobalConnections()){
                 if(c instanceof DirectStateConnection)
-                    throw new GameException(GameExceptionsLibrary.DIRECT_CONNECTION_IN_GLOBALS, String.format("connection: %s", c));
+                    throw new GameException(ExceptionLibrary.get("DIRECT_CONNECTION_IN_GLOBALS"), String.format("connection: %s", c));
             }
 
             log.info("Checking direct connection not in last place");
@@ -148,7 +148,7 @@ public class StepBuilder {
                 for (int i = 0; i < connectionsOf.size(); i++) {
                     if (connectionsOf.get(i) instanceof DirectStateConnection) {
                         if (connectionsOf.size() - 1 > i) {
-                            throw new GameException(GameExceptionsLibrary.DIRECT_CONNECTION_IS_NOT_LAST, String.format("GameState: %s, connection: %s", s.ID(), connectionsOf.get(i)));
+                            throw new GameException(ExceptionLibrary.get("DIRECT_CONNECTION_IS_NOT_LAST"), String.format("GameState: %s, connection: %s", s.ID(), connectionsOf.get(i)));
                         }
                     }
                 }
@@ -157,17 +157,17 @@ public class StepBuilder {
             log.info("Checking connections consistency");
             for (GameStateConnection c : machine.getConnections()) {
                 if (c.getStartingState() == null) {
-                    throw new GameException(GameExceptionsLibrary.CONNECTION_STARTINGSTATE_IS_NULL, c.toString());
+                    throw new GameException(ExceptionLibrary.get("CONNECTION_STARTINGSTATE_IS_NULL"), c.toString());
                 }
                 if (!machine.getStates().contains(c.getStartingState()) || !machine.getStates().contains(c.getResultState())) {
-                    throw new GameException(GameExceptionsLibrary.CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES, c.toString());
+                    throw new GameException(ExceptionLibrary.get("CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES"), c.toString());
                 }
             }
 
             log.info("Checking global connections consistency");
             for (GameStateConnection c : machine.getGlobalConnections()) {
                 if (!machine.getStates().contains(c.getResultState())) {
-                    throw new GameException(GameExceptionsLibrary.CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES, c.toString());
+                    throw new GameException(ExceptionLibrary.get("CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES"), c.toString());
                 }
             }
         } catch (Exception e) {

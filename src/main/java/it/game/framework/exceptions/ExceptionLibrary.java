@@ -41,6 +41,7 @@ public class ExceptionLibrary {
         e.add(new Entry("CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES", 9103, "States in connection are not contained in the machine's states list"));
         e.add(new Entry("DIRECT_CONNECTION_IS_NOT_LAST", 9104, "A connection that returns always TRUE is not last, connections following this one are not reachable"));
         e.add(new Entry("DIRECT_CONNECTION_IN_GLOBALS", 9105, "A connection that returns always TRUE is in the global connections, connections following this one are not reachable"));
+        e.add(new Entry("CLASS_NAME_IS_A_KEYWORD",9106, "The class name is a keyword between GOTO, CATCH and EXIT, this is prohibited please change it"));
 
         //Execution Exceptions
         e.add(new Entry("EXECUTION_EXCEPTION", 9200, "Machine execution exception"));
