@@ -1,16 +1,16 @@
 # Test machine
+globals:
+  - expression: "{{val1:Integer}} < 0"
+    target: b
+  - expression: "CATCH:9101"
+    target: EXIT
 states:
-  - globals:
-      - expression: "{{val1:Integer}} < 0"
-        target: b
-      - expression: "{{Exception:9101}}"
-        target: c
   - name: a
-    classname: it.game.framework.testclasses.GameStateA
+    classname: GameStateA
     connections:
       - expression: "{{val1:Integer}} > 5"
         target: b
-      - expression: "{{val2:Boolean}}"
+      - expression: "GOTO"
         target: c
   - name: b
     classname: it.game.framework.testclasses.GameStateB

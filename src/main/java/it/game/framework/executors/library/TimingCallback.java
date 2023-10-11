@@ -7,7 +7,7 @@ import lombok.Getter;
 
 import java.util.*;
 
-public class TimingMonitor extends ExecutorCallback {
+public class TimingCallback extends ExecutorCallback {
 
     @Getter
     private long totalExecution = 0L;

@@ -1,6 +1,10 @@
 package it.game.framework.builders;
 
 import it.game.framework.exceptions.GameException;
+import it.game.framework.exceptions.GameExceptionsLibrary;
+import it.game.framework.executors.GameExecutor;
+import it.game.framework.stateconnections.DirectStateConnection;
+import it.game.framework.stateconnections.ExceptionStateConnection;
 import it.game.framework.stateconnections.GameStateConnection;
 import it.game.framework.stateconnections.interfaces.Expression;
 import it.game.framework.statemachines.StateMachine;
@@ -10,6 +14,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
+import pl.joegreen.lambdaFromString.LambdaCreationException;
 import pl.joegreen.lambdaFromString.LambdaFactory;
 import pl.joegreen.lambdaFromString.TypeReference;
 
@@ -29,7 +34,7 @@ public class YamlBuilder {
 
     @ToString
     private static class Machine {
-        //public String context;
+        public List<Connection> globals;
         public List<State> states;
     }
 
@@ -74,6 +79,7 @@ public class YamlBuilder {
 
     private void generateMachine(Machine machine) throws Exception {
         Map<String, GameState> refs = new HashMap<>();
+        refs.put("EXIT", null);
         for (State s : machine.states) {
             String name = s.name;
             GameState state = instantiate(s.classname);
@@ -81,24 +87,49 @@ public class YamlBuilder {
             this.machine.getStates().add(state);
         }
 
-
         LambdaFactory factory = LambdaFactory.get();
         for (State s : machine.states) {
             if (s.connections == null) continue;
             for (Connection c : s.connections) {
-                GameStateConnection connection = new GameStateConnection(
-                        prettifyExpression(c.expression),
-                        refs.get(s.name),
-                        factory.createLambda(
-                                rectifyExpression(c.expression),
-                                new TypeReference<Expression>() {
-                                } //DON'T REMOVE EXPRESSION OR JVM ERROR OCCURS
-                        ),
-                        refs.get(c.target)
-                );
+                GameStateConnection connection = getConnection(s, c, refs, factory);
                 this.machine.getConnections().add(connection);
             }
         }
+
+        if (machine.globals != null) {
+            for (Connection c : machine.globals) {
+                GameStateConnection connection = getConnection(null, c, refs, factory);
+                if(connection instanceof DirectStateConnection) throw new GameException(GameExceptionsLibrary.DIRECT_CONNECTION_IN_GLOBALS);
+                this.machine.getGlobalConnections().add(connection);
+            }
+        }
+    }
+
+    private GameStateConnection getConnection(State s, Connection c, Map<String, GameState> refs, LambdaFactory factory) throws LambdaCreationException {
+        if (c.expression.contains("GOTO")) {
+            return new DirectStateConnection(
+                    s == null ? null : refs.get(s.name),
+                    refs.get(c.target)
+            );
+        }
+        if (c.expression.contains("CATCH")) {
+            return new ExceptionStateConnection(
+                    c.expression,
+                    s == null ? null : refs.get(s.name),
+                    Integer.parseInt(c.expression.split(":")[1]),
+                    refs.get(c.target)
+            );
+        }
+        return new GameStateConnection(
+                prettifyExpression(c.expression),
+                s == null ? null : refs.get(s.name),
+                factory.createLambda(
+                        rectifyExpression(c.expression),
+                        new TypeReference<Expression>() {
+                        } //DON'T REMOVE EXPRESSION OR JVM ERROR OCCURS
+                ),
+                refs.get(c.target)
+        );
     }
 
     private GameState instantiate(String classname) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -109,6 +140,7 @@ public class YamlBuilder {
             throw new ClassCastException(classname + " cannot be casted into " + GameState.class.getSimpleName());
         return (GameState) i;
     }
+
 
     private String rectifyExpression(String expression) {
         String ret = expression;

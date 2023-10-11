@@ -5,12 +5,14 @@ import lombok.Getter;
 @Getter
 public enum GameExceptionsLibrary {
 
+
     //Building exceptions
     MACHINE_BUILDING_EXCEPTION(9100, "Machine building exception"),
     STARTING_STATE_IS_NOT_IN_MACHINE_STATES(9101, "Starting state is not in the machine's states list"),
     CONNECTION_STARTINGSTATE_IS_NULL(9102, "Connection's starting state missing"),
     CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES(9103, "States in connection are not contained in the machine's states list"),
-    DIRECT_EXPRESSION_IS_NOT_LAST(9104, "The connection with a direct expression is not last, expression following this are not reachable"),
+    DIRECT_CONNECTION_IS_NOT_LAST(9104, "A connection that returns always TRUE is not last, connections following this one are not reachable"),
+    DIRECT_CONNECTION_IN_GLOBALS(9105, "A connection that returns always TRUE is in the global connections, connections following this one are not reachable"),
 
     //Execution exceptions
     EXECUTION_EXCEPTION(9200, "Machine execution exception"),

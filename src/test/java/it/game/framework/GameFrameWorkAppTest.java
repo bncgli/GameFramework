@@ -3,10 +3,9 @@ package it.game.framework;
 import it.game.framework.builders.StepBuilder;
 import it.game.framework.builders.YamlBuilder;
 import it.game.framework.contexts.GameContext;
-import it.game.framework.exceptions.GameException;
-import it.game.framework.executors.MonitoredExecutor;
+import it.game.framework.executors.GameExecutor;
 import it.game.framework.executors.SteppedExecutor;
-import it.game.framework.executors.library.TimingMonitor;
+import it.game.framework.executors.library.TimingCallback;
 import it.game.framework.renderers.Renderer;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
@@ -14,19 +13,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest()
-public class gameFrameworkAppTest {
+public class GameFrameWorkAppTest {
 
     public static class LoadData extends GameState {
 
         @Override
-        public void execute(GameContext c) throws GameException {
+        public void execute(GameContext c) {
             System.out.println("Loading player data into context from db");
         }
     }
@@ -34,7 +35,7 @@ public class gameFrameworkAppTest {
     public static class Spin extends GameState {
 
         @Override
-        public void execute(GameContext c) throws GameException {
+        public void execute(GameContext c) {
             System.out.println("Executing the spin");
         }
     }
@@ -42,7 +43,7 @@ public class gameFrameworkAppTest {
     public static class CheckNormalSpin extends GameState {
 
         @Override
-        public void execute(GameContext c) throws GameException {
+        public void execute(GameContext c) {
             System.out.println("Checking the normal spin results");
         }
     }
@@ -50,7 +51,7 @@ public class gameFrameworkAppTest {
     public static class CheckFreeSpin extends GameState {
 
         @Override
-        public void execute(GameContext c) throws GameException {
+        public void execute(GameContext c) {
             System.out.println("Checking the free spin results");
         }
     }
@@ -58,7 +59,7 @@ public class gameFrameworkAppTest {
     public static class UpdatePlayerData extends GameState {
 
         @Override
-        public void execute(GameContext c) throws GameException {
+        public void execute(GameContext c) {
             System.out.println("Update player data");
         }
     }
@@ -78,16 +79,16 @@ public class gameFrameworkAppTest {
 
         StepBuilder.builder(machine)
                 .addStartingState(load)
-                .addConnectionFromLastState(spin)
+                .addTrueConnectionFromLastState(spin)
                 .addGameState(spin)
                 .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, calcFree)
                 .addConnectionFromLastState("fs=0", (c) -> c.<Integer>get("fs") == 0, calcNorm)
                 .addGameState(calcNorm)
                 .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, spin)
-                .addConnectionFromLastState(update)
+                .addTrueConnectionFromLastState(update)
                 .addGameState(calcFree)
                 .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, spin)
-                .addConnectionFromLastState(update)
+                .addTrueConnectionFromLastState(update)
                 .addGameState(update)
                 .build();
 
@@ -118,17 +119,18 @@ public class gameFrameworkAppTest {
         }
     }
 
+
     @Autowired
-    MonitoredExecutor monitoredExecutor;
+    GameExecutor gameExecutor;
 
     @Test
     public void testMonitoredExecutor() {
 
-        TimingMonitor timingMonitor = new TimingMonitor();
+        TimingCallback timingMonitor = new TimingCallback();
 
-        monitoredExecutor.setStateMachine(machine);
-        monitoredExecutor.setContext(null);
-        monitoredExecutor.setMonitor(timingMonitor);
+        gameExecutor.setStateMachine(machine);
+        gameExecutor.setContext(null);
+        gameExecutor.setCallback(timingMonitor);
 
         System.out.println("Total execution: " + timingMonitor.getTotalExecution());
         System.out.println("Execution of stages:\n" + timingMonitor.getStateExecution().stream().map(v -> v.getClass() + "\t" + v.getKey()).collect(Collectors.joining("\n")));
@@ -137,8 +139,7 @@ public class gameFrameworkAppTest {
     @Test
     public void testYamlBuilder() {
         StateMachine m = new StateMachine();
-        YamlBuilder builder = new YamlBuilder(m, "poc.yaml");
-        builder.build();
+        YamlBuilder.builder(m, "poc.yaml").build();
 
         System.out.println(renderer.renderTree(m));
         renderer.renderGraph(m, "yamlBuilderTest");

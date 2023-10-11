@@ -2,12 +2,12 @@ package it.game.framework.builders;
 
 import it.game.framework.exceptions.GameException;
 import it.game.framework.exceptions.GameExceptionsLibrary;
-import it.game.framework.stateconnections.expressions.DirectExpression;
+import it.game.framework.stateconnections.DirectStateConnection;
+import it.game.framework.stateconnections.ExceptionStateConnection;
+import it.game.framework.stateconnections.GameStateConnection;
 import it.game.framework.stateconnections.interfaces.Expression;
 import it.game.framework.statemachines.StateMachine;
 import it.game.framework.states.GameState;
-import it.game.framework.stateconnections.GameStateConnection;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
@@ -19,7 +19,7 @@ public class StepBuilder {
     protected final StateMachine machine;
     private GameState last;
 
-    public static StepBuilder builder(StateMachine machine){
+    public static StepBuilder builder(StateMachine machine) {
         return new StepBuilder(machine);
     }
 
@@ -30,7 +30,7 @@ public class StepBuilder {
 
     public StepBuilder addStartingState(GameState GameState) {
         if (!machine.getStates().contains(GameState)) {
-            machine.getStates().add(0,GameState);
+            machine.getStates().add(0, GameState);
         }
         machine.setStartState(GameState);
         last = GameState;
@@ -48,44 +48,76 @@ public class StepBuilder {
         return this;
     }
 
+
     public StepBuilder addConnection(String expressionDescription, Expression expression, GameState startingState, GameState resultState) {
-        GameStateConnection connection = GameStateConnection.create(
-                expressionDescription,
-                startingState,
-                expression,
-                resultState
+        return addConnection(
+                new GameStateConnection(
+                        expressionDescription,
+                        startingState,
+                        expression,
+                        resultState
+                )
         );
-        machine.getConnections().add(connection);
-        return this;
     }
 
-    public StepBuilder addConnection(GameState startingState, GameState resultState) {
-        GameStateConnection connection = GameStateConnection.createDirect(
-                startingState,
-                resultState
+    public StepBuilder addTrueConnection(GameState startingState, GameState resultState) {
+        return addConnection(
+                new DirectStateConnection(
+                        startingState,
+                        resultState
+                )
         );
-        machine.getConnections().add(connection);
-        return this;
     }
+
+    public StepBuilder addExceptionConnection(String expressionDescription, Exception exception, GameState startingState, GameState resultState) {
+        return addConnection(
+                new ExceptionStateConnection(
+                        expressionDescription,
+                        startingState,
+                        exception,
+                        resultState
+                )
+        );
+    }
+
 
     public StepBuilder addConnectionFromLastState(String expressionDescription, Expression expression, GameState resultState) {
-        GameStateConnection connection = GameStateConnection.create(
-                expressionDescription,
-                last,
-                expression,
-                resultState
-        );
-        machine.getConnections().add(connection);
+        return addConnection(expressionDescription, expression, last, resultState);
+    }
+
+    public StepBuilder addTrueConnectionFromLastState(GameState resultState) {
+        return addTrueConnection(last, resultState);
+    }
+
+    public StepBuilder addExceptionConnectionFromLastState(String expressionDescription, Exception exception, GameState resultState) {
+        return addExceptionConnection(expressionDescription, exception, last, resultState);
+    }
+
+    public StepBuilder addGlobalConnection(GameStateConnection GameStateConnection) {
+        machine.getGlobalConnections().add(GameStateConnection);
         return this;
     }
 
-    public StepBuilder addConnectionFromLastState(GameState resultState) {
-        GameStateConnection connection = GameStateConnection.createDirect(
-                last,
-                resultState
+    public StepBuilder addGlobalConnection(String expressionDescription, Expression expression, GameState resultState) {
+        return addGlobalConnection(
+                new GameStateConnection(
+                        expressionDescription,
+                        null,
+                        expression,
+                        resultState
+                )
         );
-        machine.getConnections().add(connection);
-        return this;
+    }
+
+    public StepBuilder addGlobalExceptionConnection(String expressionDescription, Exception exception, GameState resultState) {
+        return addGlobalConnection(
+                new ExceptionStateConnection(
+                        expressionDescription,
+                        null,
+                        exception,
+                        resultState
+                )
+        );
     }
 
     public void build() {
@@ -98,30 +130,43 @@ public class StepBuilder {
             if (!machine.getStates().contains(machine.getStartState())) {
                 throw new GameException(GameExceptionsLibrary.STARTING_STATE_IS_NOT_IN_MACHINE_STATES);
             }
+
             log.info("Checking duplicates in states list");
             if (machine.getStates().size() > new HashSet<>(machine.getStates()).size()) {
                 log.warn("Machine's state list contains unnecessary duplicates");
             }
+
+            log.info("Checking direct connections as globals");
+            for(GameStateConnection c : machine.getGlobalConnections()){
+                if(c instanceof DirectStateConnection)
+                    throw new GameException(GameExceptionsLibrary.DIRECT_CONNECTION_IN_GLOBALS, String.format("connection: %s", c));
+            }
+
             log.info("Checking direct connection not in last place");
-            for(GameState s: machine.getStates()){
+            for (GameState s : machine.getStates()) {
                 List<GameStateConnection> connectionsOf = machine.getConnectionsOf(s);
                 for (int i = 0; i < connectionsOf.size(); i++) {
-                    if(connectionsOf.get(i).getExpression() instanceof DirectExpression){
-                        if(connectionsOf.size() - 1 > i){
-                            throw new GameException(GameExceptionsLibrary.DIRECT_EXPRESSION_IS_NOT_LAST, String.format("GameState: %s, connection: %s", s.ID(), connectionsOf.get(i)));
+                    if (connectionsOf.get(i) instanceof DirectStateConnection) {
+                        if (connectionsOf.size() - 1 > i) {
+                            throw new GameException(GameExceptionsLibrary.DIRECT_CONNECTION_IS_NOT_LAST, String.format("GameState: %s, connection: %s", s.ID(), connectionsOf.get(i)));
                         }
                     }
                 }
             }
+
             log.info("Checking connections consistency");
             for (GameStateConnection c : machine.getConnections()) {
                 if (c.getStartingState() == null) {
                     throw new GameException(GameExceptionsLibrary.CONNECTION_STARTINGSTATE_IS_NULL, c.toString());
                 }
-                if (c.getResultState() == null) {
-                    log.warn("Connection's Result state is null the machine will end execution unexpectedly");
-                }
                 if (!machine.getStates().contains(c.getStartingState()) || !machine.getStates().contains(c.getResultState())) {
+                    throw new GameException(GameExceptionsLibrary.CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES, c.toString());
+                }
+            }
+
+            log.info("Checking global connections consistency");
+            for (GameStateConnection c : machine.getGlobalConnections()) {
+                if (!machine.getStates().contains(c.getResultState())) {
                     throw new GameException(GameExceptionsLibrary.CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES, c.toString());
                 }
             }

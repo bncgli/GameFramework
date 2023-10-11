@@ -45,6 +45,15 @@ public class GameException extends Exception implements Serializable {
         this.errorHash = e.getId();
     }
 
+    public GameException(ExceptionLibrary.Entry e) {
+        super(e.getMessage());
+        this.errorHash = e.getHash();
+    }
+
+    public GameException(ExceptionLibrary.Entry e, String messageExtension) {
+        super(e.getMessage() + " - " + messageExtension);
+        this.errorHash = e.getHash();
+    }
 
     /**
      * Formats an exception inserting contestualizing it with the GameState<C> that throwed it
