@@ -3,11 +3,12 @@ package it.game.framework.contexts;
 import it.game.framework.exceptions.ExceptionLibrary;
 import it.game.framework.exceptions.GameException;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SimpleContext implements GameContext {
+public class SimpleContext extends GameContext {
 
     List<String> names;
     List<Object> objects;
@@ -22,6 +23,11 @@ public class SimpleContext implements GameContext {
     }
 
     @Override
+    public boolean contains(String key) {
+        return names.contains(key);
+    }
+
+    @Override
     public <V> void put(String key, V value) {
         if (names.contains(key)) {
             objects.set(indexOf(key), value);
@@ -32,8 +38,8 @@ public class SimpleContext implements GameContext {
     }
 
     @Override
-    public <V> void putAll(Map<String, V> data) {
-        for (Map.Entry<String, ?> k : data.entrySet()) {
+    public void putAll(Map<String, Object> data) {
+        for (Map.Entry<String, Object> k : data.entrySet()) {
             put(k.getKey(), k.getValue());
         }
     }
@@ -64,4 +70,5 @@ public class SimpleContext implements GameContext {
         names.clear();
         objects.clear();
     }
+
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-public class GuavaContext  implements GameContext{
+public class GuavaContext extends GameContext {
 
     Cache<String, Object> cache;
 
@@ -21,12 +21,17 @@ public class GuavaContext  implements GameContext{
     }
 
     @Override
+    public boolean contains(String key) {
+        return cache.asMap().containsKey(key);
+    }
+
+    @Override
     public <V> void put(String key, V value) {
         cache.put(key, value);
     }
 
     @Override
-    public <V> void putAll(Map<String, V> data) {
+    public void putAll(Map<String, Object> data) {
         cache.putAll(data);
     }
 
@@ -52,4 +57,5 @@ public class GuavaContext  implements GameContext{
     public void cleanup() {
         cache.cleanUp();
     }
+
 }
