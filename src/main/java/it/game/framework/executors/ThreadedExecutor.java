@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * This executor creates and executes the StateMachine
+ * in a separate Thread.
+ */
 @Slf4j
 @Getter
 @Setter

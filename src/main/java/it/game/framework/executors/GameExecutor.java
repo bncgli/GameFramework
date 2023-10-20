@@ -16,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
 /**
@@ -41,52 +41,64 @@ public class GameExecutor implements IGameExecutor {
     protected GameState currentGameState;
     protected StateMachine stateMachine;
     protected GameContext context;
-    protected Optional<ExecutorCallback> callback;
+    protected List<ExecutorCallback> callbacks;
 
-    public GameExecutor(@Value("${game.framework.executor.global_blocking_exception}") boolean globalExecutionExceptionBlocking, @Value("${game.framework.executor.game_executor_blocking_exception}") boolean thisExecutionExceptionBlocking, GameState currentGameState, StateMachine stateMachine, GameContext context, ExecutorCallback callback) {
+    public GameExecutor(@Value("${game.framework.executor.global_blocking_exception}") boolean globalExecutionExceptionBlocking, @Value("${game.framework.executor.game_executor_blocking_exception}") boolean thisExecutionExceptionBlocking, GameState currentGameState, StateMachine stateMachine, GameContext context, List<ExecutorCallback> callbacks) {
         GlobalExecutionExceptionBlocking = globalExecutionExceptionBlocking;
         this.thisExecutionExceptionBlocking = thisExecutionExceptionBlocking;
         this.currentGameState = currentGameState;
         this.stateMachine = stateMachine;
         this.context = context;
-        this.callback = Optional.ofNullable(callback);
+        this.callbacks = callbacks == null ? new ArrayList<>() : callbacks;
     }
 
     /**
-     * Execute overrides the execute method.
-     * This method iters the state machine until the end of the GameStates
-     * or until a GameState returns an error. Each step is sended to
-     * the monitor interface.
+     * This method iterates the state machine until the end of the GameStates
+     * or until a GameState returns an unhandled error.
+     * The execution is split in 3 stages:
+     * <ul>
+     *     <li>The before-loop (begin): where the the state machine is prepared to be executed by check for errors or missing GameStates</li>
+     *     <li>The loop (process): where the StateMachine is explored and executed</li>
+     *     <li>The after-loop (end): where the executor wrap up and finishes the execution</li>
+     * </ul>
      */
     @Override
     public void execute() {
         try {
             log.info("Executing state machine");
             begin();
-            callback.ifPresent(c -> c.beforeLoop(context));
+            callbacks.forEach(c -> c.beforeLoop(context));
             while (currentGameState != null) {
                 process();
             }
-            callback.ifPresent(c -> c.afterLoop(context));
+            callbacks.forEach(c -> c.afterLoop(context));
         } catch (Exception e) {
-            callback.ifPresent(c -> c.caughtException(currentGameState, e, context));
+            callbacks.forEach(c -> c.caughtException(currentGameState, e, context));
             log.error(GameException.format(e, currentGameState.getName()));
         }
         log.info("Ending state machine execution");
         end();
     }
 
+    /**
+     * Process contains the main loop of the execution. This one executes the action
+     * inside the GameState, checks the connections and select the next GameState.
+     * In case of exception check into the ExceptionGameStateConnection if it can handle and
+     * continue execution therwise throw an exception and interrupt the execution of the machine.
+     *
+     * @throws Exception in case of unhandled exceptions throws exception
+     */
     protected void process() throws Exception {
         Exception caught = null;
         try {
             log.info("Entering GameState: {}", currentGameState.getName());
-            callback.ifPresent(c -> c.beforeExecution(currentGameState, context));
+            callbacks.forEach(c -> c.beforeExecution(currentGameState, context));
             currentGameState.execute(context);
-            callback.ifPresent(c -> c.afterExecution(currentGameState, context));
+            callbacks.forEach(c -> c.afterExecution(currentGameState, context));
             log.info("Exiting GameState: {}", currentGameState.getName());
         } catch (Exception e) {
             caught = e;
-            callback.ifPresent(c -> c.caughtException(currentGameState, e, context));
+            callbacks.forEach(c -> c.caughtException(currentGameState, e, context));
             log.error(GameException.format(e, currentGameState.getName()));
             if (isGlobalExecutionExceptionBlocking() || isThisExecutionExceptionBlocking()) {
                 throw new RuntimeException(e);
@@ -98,38 +110,51 @@ public class GameExecutor implements IGameExecutor {
         } else {
             nextGameState = getNextExceptionGameState(caught);
         }
-        callback.ifPresent(c -> c.nextSelectedGameState(currentGameState, nextGameState, context));
+        callbacks.forEach(c -> c.nextSelectedGameState(currentGameState, nextGameState, context));
         currentGameState = nextGameState;
     }
 
+    /**
+     * Begin contains command to setup the process of the machine
+     *
+     * @throws GameException If he machine has some GameState missing it throws exceptions
+     */
     protected void begin() throws GameException {
         executionChecks();
         if (currentGameState == null) currentGameState = stateMachine.getStartState();
     }
 
+    /**
+     * End contains the ending part of the execution of the machine
+     * where everything is wrapped up and closed
+     */
     protected void end() {
-
     }
 
     @Override
-    public ExecutorCallback getCallback() {
-        return callback.orElse(null);
+    public List<ExecutorCallback> getCallbacks() {
+        return callbacks;
     }
 
     @Override
-    public void setCallback(ExecutorCallback callback) {
-        this.callback = Optional.ofNullable(callback);
+    public void setCallbacks(List<ExecutorCallback> callback) {
+        this.callbacks = callback;
+    }
+
+    @Override
+    public void setCallbacks(ExecutorCallback... callbacks) {
+        setCallbacks(List.of(callbacks));
     }
 
     /**
-     * Iters all the GameStateconditions and return the game state of
+     * Iterates all the GameStateConditions and return the game state of
      * the FIRST game state condition returning TRUE
      *
      * @return The GameState with the condition that returned true
      */
     protected GameState getNextGameState() throws Exception {
         List<GameStateConnection> GameStateConnections = stateMachine.getConnectionsOf(currentGameState);
-        callback.ifPresent(c -> c.connectionChoice(currentGameState, GameStateConnections, context));
+        callbacks.forEach(c -> c.connectionChoice(currentGameState, GameStateConnections, context));
         for (GameStateConnection c : GameStateConnections) {
             if (c.checkExpression(context)) {
                 return c.getResultState();
@@ -138,9 +163,16 @@ public class GameExecutor implements IGameExecutor {
         return null;
     }
 
+    /**
+     * In case of an exception iterates all the ExceptionGameStateConditions and returns the game state of
+     * the FIRST ExceptionGameStateCondition returning TRUE, handling the exception
+     *
+     * @param e The exception to check
+     * @return The GameState with the condition that returned true
+     */
     protected GameState getNextExceptionGameState(Exception e) throws Exception {
         List<ExceptionStateConnection> GameStateConnections = stateMachine.getExceptionConnectionsOf(currentGameState);
-        callback.ifPresent(c -> c.exceptionConnectionChoice(currentGameState, GameStateConnections, context));
+        callbacks.forEach(c -> c.exceptionConnectionChoice(currentGameState, GameStateConnections, context));
         for (ExceptionStateConnection c : GameStateConnections) {
             if (c.checkExpression(e)) {
                 return c.getResultState();
@@ -149,6 +181,12 @@ public class GameExecutor implements IGameExecutor {
         return null;
     }
 
+    /**
+     * Checks the state of the machine before the executing it
+     * throwing exception in case of missing parts.
+     *
+     * @throws GameException In case of missing GameState
+     */
     protected void executionChecks() throws GameException {
         if (stateMachine == null) {
             throw new GameException(ExceptionLibrary.get("STATEMACHINE_IS_NULL"));
@@ -160,6 +198,5 @@ public class GameExecutor implements IGameExecutor {
             throw new GameException(ExceptionLibrary.get("STARTING_STATE_IS_NULL"));
         }
     }
-
 
 }

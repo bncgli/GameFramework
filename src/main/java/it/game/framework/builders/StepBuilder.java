@@ -13,12 +13,31 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * This structure helps to the creation of the machine
+ * step-by-step. Based on the builder design patterns
+ * creates states and connections alike and add them to the
+ * state machine object
+ */
 @Slf4j
 public class StepBuilder {
 
+    /**
+     * Reference to the state machine that has to be built
+     */
     protected final StateMachine machine;
+
+    /**
+     * Reference to the last game state for reference with the
+     * methods addConnectionFromLastState and addTrueGameConnectionFromLastState
+     */
     private GameState last;
 
+    /**
+     * The builder method that starts the construction process
+     * @param machine The reference to the state machine that has to be built
+     * @return A new instance of StepBuilder
+     */
     public static StepBuilder builder(StateMachine machine) {
         return new StepBuilder(machine);
     }
@@ -28,6 +47,12 @@ public class StepBuilder {
         this.last = null;
     }
 
+    /**
+     * This method adds the game state given as parameter
+     * as starting state in the machine
+     * @param GameState The GameState elected as starting state of the machine
+     * @return This instance of the StepBuilder
+     */
     public StepBuilder addStartingState(GameState GameState) {
         if (!machine.getStates().contains(GameState)) {
             machine.getStates().add(0, GameState);
@@ -37,18 +62,39 @@ public class StepBuilder {
         return this;
     }
 
+    /**
+     * This method add a GameState to the list of
+     * states in the machine
+     * @param GameState The GameState to be added
+     * @return This instance of the StepBuilder
+     */
     public StepBuilder addGameState(GameState GameState) {
         machine.getStates().add(GameState);
         last = GameState;
         return this;
     }
 
+    /**
+     * This method adds a GameStateConnection to the
+     * list of connections in the state machine
+     * @param GameStateConnection The GameStateConnection to be added
+     * @return This instance of the StepBuilder
+     */
     public StepBuilder addConnection(GameStateConnection GameStateConnection) {
         machine.getConnections().add(GameStateConnection);
         return this;
     }
 
-
+    /**
+     * This method creates and add a new GameStateConnection to
+     * the lists of connections in the state machine with the
+     * parameters passed by the user
+     * @param expressionDescription Is a short description of the expression to show inside the machine's renderings
+     * @param expression The expression lambda that define the connection this lambda has one argument(the context) and returns a boolean
+     * @param startingState The state where the connection start from
+     * @param resultState The state where the connection ends to
+     * @return This instance of teh StepBuilder
+     */
     public StepBuilder addConnection(String expressionDescription, Expression expression, GameState startingState, GameState resultState) {
         return addConnection(
                 new GameStateConnection(
@@ -60,7 +106,17 @@ public class StepBuilder {
         );
     }
 
-    public StepBuilder addTrueConnection(GameState startingState, GameState resultState) {
+    /**
+     * This method creates and add a DirectGameStateConnection
+     * to the state machine. This type of connection
+     * IS ALWAYS TRUE, so it is useful when the machine has only one
+     * connection or for last resource if ALL THE PREVIOUS connections
+     * returned false
+     * @param startingState The state where the connection start from
+     * @param resultState The state where the connection end to
+     * @return This instance of StepBuilder
+     */
+    public StepBuilder addDirectConnection(GameState startingState, GameState resultState) {
         return addConnection(
                 new DirectStateConnection(
                         startingState,
@@ -69,6 +125,18 @@ public class StepBuilder {
         );
     }
 
+    /**
+     * This method creates and add an ExceptionGameStateConnection,
+     * this kind of state is checked only if an exception is caught
+     * during the execution of a state, if the caught exception
+     * coincide with the caught exception contained in the connection
+     * the executor moves to this resulting state.
+     * @param expressionDescription Is a short description of the expression to show inside the machine's renderings
+     * @param exception The exception to catch
+     * @param startingState The state where the connection start from
+     * @param resultState The state where the connection ends to
+     * @return This instance of teh StepBuilder
+     */
     public StepBuilder addExceptionConnection(String expressionDescription, Exception exception, GameState startingState, GameState resultState) {
         return addConnection(
                 new ExceptionStateConnection(
@@ -80,24 +148,74 @@ public class StepBuilder {
         );
     }
 
-
+    /**
+     * This method creates and add a new GameStateConnection to
+     * the lists of connections in the state machine with the
+     * parameters passed by the user. The starting state is the last state added
+     * to the machine
+     * @param expressionDescription Is a short description of the expression to show inside the machine's renderings
+     * @param expression The expression lambda that define the connection this lambda has one argument(the context) and returns a boolean
+     * @param resultState The state where the connection ends to
+     * @return This instance of teh StepBuilder
+     */
     public StepBuilder addConnectionFromLastState(String expressionDescription, Expression expression, GameState resultState) {
         return addConnection(expressionDescription, expression, last, resultState);
     }
 
-    public StepBuilder addTrueConnectionFromLastState(GameState resultState) {
-        return addTrueConnection(last, resultState);
+    /**
+     * This method creates and add a DirectGameStateConnection
+     * to the state machine. This type of connection
+     * IS ALWAYS TRUE, so it is useful when the machine has only one
+     * connection or for last resource if ALL THE PREVIOUS connections
+     * returned false. The starting state is the last GameState added to
+     * the machine
+     * @param resultState The state where the connection end to
+     * @return This instance of StepBuilder
+     */
+    public StepBuilder addDirectConnectionFromLastState(GameState resultState) {
+        return addDirectConnection(last, resultState);
     }
 
+    /**
+     * This method creates and add an ExceptionGameStateConnection,
+     * this kind of state is checked only if an exception is caught
+     * during the execution of a state, if the caught exception
+     * coincide with the caught exception contained in the connection
+     * the executor moves to this resulting state.
+     * The starting state is the last state added to the machine
+     * @param expressionDescription Is a short description of the expression to show inside the machine's renderings
+     * @param exception The exception to catch
+     * @param resultState The state where the connection ends to
+     * @return This instance of teh StepBuilder
+     */
     public StepBuilder addExceptionConnectionFromLastState(String expressionDescription, Exception exception, GameState resultState) {
         return addExceptionConnection(expressionDescription, exception, last, resultState);
     }
 
+    /**
+     * This method adds a GameStateConnection to the
+     * list of global connections in the state machine.
+     * Global connection can start from any state and are generally
+     * used to handle unexpected results.
+     * @param GameStateConnection The GameStateConnection to be added
+     * @return This instance of the StepBuilder
+     */
     public StepBuilder addGlobalConnection(GameStateConnection GameStateConnection) {
         machine.getGlobalConnections().add(GameStateConnection);
         return this;
     }
 
+
+    /**
+     * This method creates and adds a GameStateConnection to the
+     * list of global connections in the state machine.
+     * Global connection can start from any state and are generally
+     * used to handle unexpected results.
+     * @param expressionDescription Short description of the expression for rendering purposes only
+     * @param expression The expression lambda that define the connection this lambda has one argument(the context) and returns a boolean
+     * @param resultState The state where the connection ends to
+     * @return This instance of the StepBuilder
+     */
     public StepBuilder addGlobalConnection(String expressionDescription, Expression expression, GameState resultState) {
         return addGlobalConnection(
                 new GameStateConnection(
@@ -109,6 +227,19 @@ public class StepBuilder {
         );
     }
 
+    /**
+     * This method creates and add an ExceptionGameStateConnection,
+     * this kind of state is checked only if an exception is caught
+     * during the execution of a state, if the caught exception
+     * coincide with the caught exception contained in the connection
+     * the executor moves to this resulting state.
+     * Global connection can start from any state and are generally
+     * used to handle unexpected results.
+     * @param expressionDescription Is a short description of the expression to show inside the machine's renderings
+     * @param exception The exception to catch
+     * @param resultState The state where the connection ends to
+     * @return This instance of teh StepBuilder
+     */
     public StepBuilder addGlobalExceptionConnection(String expressionDescription, Exception exception, GameState resultState) {
         return addGlobalConnection(
                 new ExceptionStateConnection(
@@ -120,6 +251,12 @@ public class StepBuilder {
         );
     }
 
+    /**
+     * The last method to be used to finalize the
+     * modifications of StepBuilder, this method
+     * checks the possible errors inside the machine
+     * and build it.
+     */
     public void build() {
         log.info("Building machine...");
         try {

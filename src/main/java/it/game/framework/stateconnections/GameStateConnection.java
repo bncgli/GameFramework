@@ -8,10 +8,13 @@ import lombok.Setter;
 
 import java.io.Serializable;
 
+/**
+ * This class contains the connections from a GameState to another
+ * with the relative condition(Expression) to confirm this action
+ */
 @Getter
 @Setter
 public class GameStateConnection implements Serializable {
-
 
     private String expressionDescription;
     private Expression expression;
@@ -25,6 +28,12 @@ public class GameStateConnection implements Serializable {
         this.resultState = resultState;
     }
 
+    /**
+     * Calculate and returns the result of the expression
+     * @param c The GameContext
+     * @return True or false depending of the expression's formula
+     * @throws Exception
+     */
     public boolean checkExpression(GameContext c) throws Exception {
         return expression.check(c);
     }

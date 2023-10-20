@@ -18,8 +18,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * The navigator class contains static methods for
- * visualization of the state machine for debugging purposes
+ * This component contain methods for the visualization of the machine
  */
 @Component
 public class Renderer {
@@ -81,6 +80,11 @@ public class Renderer {
         }
     }
 
+    /**
+     * Renders the machine as a tree
+     * @param machine The state machine we want to render
+     * @return A string that can be print representing the state machine as a tree
+     */
     public String renderTree(StateMachine machine) {
         StringBuilder res = new StringBuilder();
         for (GameState s : machine.getStates()) {
@@ -101,14 +105,13 @@ public class Renderer {
     public void renderGraph(StateMachine machine, String filename) {
         DefaultDirectedGraph<String, ConditionEdge> graph = new DefaultDirectedGraph<>(ConditionEdge.class);
         machine.getStates().forEach(v -> graph.addVertex(v.ID()));
+        graph.addVertex("GLOBAL");
         machine.getConnections().forEach(v -> {
-            if (v.getStartingState() != null) {
-                graph.addEdge(
-                        v.getStartingState().ID(),
-                        v.getResultState().ID(),
-                        new ConditionEdge(v.getExpressionDescription())
-                );
-            }
+            graph.addEdge(
+                    v.getStartingState() == null ? "GLOBAL" : v.getStartingState().ID(),
+                    v.getResultState().ID(),
+                    new ConditionEdge(v.getExpressionDescription())
+            );
         });
 
         JGraphXAdapter<String, ConditionEdge> graphAdapter = new JGraphXAdapter<>(graph);

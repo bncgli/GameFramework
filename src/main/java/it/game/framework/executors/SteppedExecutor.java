@@ -16,12 +16,10 @@ import java.util.Iterator;
 import java.util.Optional;
 
 /**
- * This class is intended for debugging purpose only,
- * it contains the monitor interface that contains as series
- * of abstract method that can be implemented to monitor the execution
- * of the statemachine. The class can used to monitor what happen when a specific
- * state is active to track bugs.
- *
+ * This class leaves to the user the execution of the
+ * machine by repeatedly call the execute method.
+ * The class extends iterable and iterator to grant the possibility
+ * to execute the machine into a foreach loop.
  */
 @Slf4j
 @Getter
@@ -31,6 +29,13 @@ import java.util.Optional;
 @Component
 public class SteppedExecutor extends GameExecutor implements Iterable<Optional<GameState>>, Iterator<Optional<GameState>> {
 
+
+    /**
+     * The execution phases; <br>
+     * Start, the beginning of the machine execution<br>
+     * Loop, the loop where the GameStates are explored and executed<br>
+     * End, the end of execution, when in this the current state is null
+     */
     public enum Steps {
         START, LOOP, END;
     }
@@ -39,8 +44,11 @@ public class SteppedExecutor extends GameExecutor implements Iterable<Optional<G
     protected boolean GlobalExecutionExceptionBlocking;
     @Value("${game.framework.executor.stepped_executor_blocking_exception}")
     private boolean thisExecutionExceptionBlocking;
-    Steps currentStep = Steps.START;
+    private Steps currentStep = Steps.START;
 
+    /**
+     * Resets the execution of the machine
+     */
     public void restart() {
         currentStep = Steps.START;
     }

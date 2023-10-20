@@ -9,6 +9,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class is created only to the purpose of serialization
+ * this one only stores and loads the necessary data of the StateMachine
+ */
 @Getter
 @Setter
 public class StateMachineData implements Serializable {

@@ -15,6 +15,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+/**
+ * This is the main class of the library, this one stores
+ * GameStates and GameStateConnections in a neat way to be handled,
+ * executed and stored/loaded
+ */
 @Slf4j
 @Setter
 @Getter
@@ -35,6 +40,13 @@ public class StateMachine {
         );
     }
 
+    /**
+     * Returns all the connections of the given GameState,
+     * first the global ones then the ones that start from the given GameState
+     * @param gameState The target GameState
+     * @return The list of GameStateConnections first the global ones then the ones that
+     * start from the given GameState
+     */
     public List<GameStateConnection> getConnectionsOf(GameState gameState) {
         List<GameStateConnection> ret = new ArrayList<>();
         ret.addAll(globalConnections);
@@ -44,6 +56,13 @@ public class StateMachine {
         return ret;
     }
 
+    /**
+     * Returns all the ExceptionGameStateConnections of the given GameState,
+     * first the global ones then the ones that start from the given GameState
+     * @param gameState The target GameState
+     * @return The list of ExceptionGameStateConnections first the global ones then the ones that
+     * start from the given GameState
+     */
     public List<ExceptionStateConnection> getExceptionConnectionsOf(GameState gameState) {
         return getConnectionsOf(gameState).stream().filter(v ->
                         v instanceof ExceptionStateConnection
@@ -51,17 +70,28 @@ public class StateMachine {
                 .collect(Collectors.toList());
     }
 
-
+    /**
+     * Serialize the data of the StateMachine into a gfobject file
+     * @param filename The name of the gfobject file without extension
+     */
     public void saveTo(String filename) {
         Serializer.save(new StateMachineData(this), filename);
     }
 
+    /**
+     * Deserialize the data of the StateMachine from a gfobject file
+     * @param filename The name of the gfobject file without extension
+     */
     public void loadFrom(String filename) {
         StateMachineData loaded = Serializer.load(filename);
         assert loaded != null;
         loaded.populate(this);
     }
 
+    /**
+     * Utility method that executes a lambda on every GameState of the machine
+     * @param action The lambda formula to execute
+     */
     public void apply(IterationAction action) {
         getStates().forEach(action::execute);
     }

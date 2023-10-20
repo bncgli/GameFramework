@@ -3,11 +3,22 @@ package it.game.framework.exceptions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ExceptionLibrary {
+/**
+ * The ExceptionLibrary is a dynamic library saved as singleton
+ * that store all the exception information(name, hash and Message)
+ * about GameExceptions, this class was developed like this to
+ * create a centralized and extendable structure for store Exceptions
+ */
+public class ExceptionLibrary implements Serializable {
 
+    /**
+     * This inner class store confront and return the data
+     * of the exception Name, Hash and Message
+     */
     @Getter
     @AllArgsConstructor
     public static class Entry {
@@ -31,6 +42,11 @@ public class ExceptionLibrary {
 
     private static List<Entry> exceptions;
 
+    /**
+     * This method populates the ExceptionLibrary when
+     * is called with known exceptions
+     * @return The list of Exceptions Entries
+     */
     private static List<Entry> init() {
         List<Entry> e = new LinkedList<>();
 
@@ -57,35 +73,75 @@ public class ExceptionLibrary {
         return e;
     }
 
+    /**
+     * Returns the list of the entries
+     * @return The list of exception entries
+     */
     private static List<Entry> exceptions() {
         if (exceptions == null) exceptions = init();
         return exceptions;
     }
 
+    /**
+     * Returns the Size of the exception library
+     * @return The size of the library
+     */
     public static int size() {
         return exceptions().size();
     }
 
+    /**
+     * Check if the exception library is empty
+     * @return True if the exception library is empty
+     */
     public static boolean isEmpty() {
         return exceptions().isEmpty();
     }
 
+    /**
+     * Checks if there is an exception with the given name
+     * @param exceptionName The name of the exception to search
+     * @return returns true if the exception is present inside the library
+     */
     public static boolean containsException(String exceptionName) {
         return exceptions().stream().anyMatch(s -> s.getName().equals(exceptionName));
     }
 
+    /**
+     * Checks if there is an exception with the given hash
+     * @param hash The hash of the exception to search
+     * @return returns true if the exception is present inside the library
+     */
     public static boolean containsException(Integer hash) {
         return exceptions().stream().anyMatch(s -> s.getHash().equals(hash));
     }
 
+    /**
+     * Returns the entry with the given name
+     * @param exceptionName The name of the entry to return
+     * @return The entry of the library with the given name
+     */
     public static Entry get(String exceptionName) {
         return exceptions().stream().filter(v -> v.getName().equals(exceptionName)).findFirst().orElse(null);
     }
 
+    /**
+     * Returns the entry with the given hash
+     * @param exceptionHash The hash of the entry to return
+     * @return The entry of the library with the given hash
+     */
     public static Entry get(Integer exceptionHash) {
         return exceptions().stream().filter(v -> v.getHash().equals(exceptionHash)).findFirst().orElse(null);
     }
 
+
+    /**
+     * Adds a new Exception Entry to the library
+     * @param name The name of the new exception to index it with
+     * @param hash The hash of the new exception
+     * @param message The message of the new exception
+     * @return True if the new exception is added with success, false otherwise
+     */
     public static boolean add(String name, Integer hash, String message) {
         Entry o = new Entry(name, hash, message);
         if (exceptions().contains(o)) return false;
@@ -93,18 +149,34 @@ public class ExceptionLibrary {
         return true;
     }
 
+    /**
+     * Returns the Set of names of all the entries of the library
+     * @return The Set containing all the names of the entry in the library
+     */
     public static Set<String> namesSet() {
         return exceptions().stream().map(Entry::getName).collect(Collectors.toSet());
     }
 
+    /**
+     * Returns the Set of Hashes of all the entries of the library
+     * @return The Set containing all the hashes of the entry in the library
+     */
     public static Set<Integer> hashSet() {
         return exceptions().stream().map(Entry::getHash).collect(Collectors.toSet());
     }
 
+    /**
+     * Returns the collection of Messages of all the entries of the library
+     * @return The collection containing all the messages of the entry in the library
+     */
     public static Collection<String> messageList() {
         return exceptions().stream().map(Entry::getMessage).collect(Collectors.toSet());
     }
 
+    /**
+     * Returns the set of entries of the library
+     * @return The set of entries of the library
+     */
     public static Set<Entry> entrySet() {
         return new HashSet<>(exceptions());
     }

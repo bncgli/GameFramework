@@ -9,6 +9,12 @@ import it.game.framework.statemachines.StateMachine;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
+/**
+ * This special GameState contains a IGameExecutor
+ * the executes a different StateMachine with the relative context
+ */
 public class ExecutorGameState extends GameState {
 
     private final IGameExecutor executor;
@@ -17,11 +23,17 @@ public class ExecutorGameState extends GameState {
         this(machine, context, null);
     }
 
-    public ExecutorGameState(StateMachine machine, GameContext context, ExecutorCallback callback) {
+    public ExecutorGameState(StateMachine machine, GameContext context, List<ExecutorCallback> callbacks) {
         super("ExecutorGameState", "Executes a state machine with a relative context");
-        this.executor = new GameExecutor(true, true, null, machine, context, callback);
+        this.executor = new GameExecutor(true, true, null, machine, context, callbacks);
     }
 
+    /**
+     * Executes the StateMachine and context passed into this GameState
+     * into the IGameExecutor
+     * @param c The GameContext
+     * @throws GameException
+     */
     @Override
     public void execute(GameContext c) throws GameException {
         executor.execute();
@@ -51,11 +63,11 @@ public class ExecutorGameState extends GameState {
         executor.setContext(context);
     }
 
-    public ExecutorCallback getCallback() {
-        return executor.getCallback();
+    public List<ExecutorCallback> getCallbacks() {
+        return executor.getCallbacks();
     }
 
-    public void setCallback(ExecutorCallback callback) {
-        executor.setCallback(callback);
+    public void setCallbacks(List<ExecutorCallback> callback) {
+        executor.setCallbacks(callback);
     }
 }
