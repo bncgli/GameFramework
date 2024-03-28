@@ -6,11 +6,11 @@ globals:
     target: EXIT
 states:
   - name: a
-    classname: GameStateA
+    classname: it.game.framework.testclasses.GameStateA
     connections:
       - expression: "{{val1:Integer}} > 5"
         target: b
-      - expression: "GOTO"
+      - expression: GOTO
         target: c
   - name: b
     classname: it.game.framework.testclasses.GameStateB

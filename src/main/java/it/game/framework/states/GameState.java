@@ -56,7 +56,7 @@ public abstract class GameState implements Serializable {
 
     @Override
     public String toString() {
-        return "GameState<C>{" +
+        return "GameState{" +
                 "name='" + name + '\'' +
                 "description='" + description + '\'' +
                 '}';

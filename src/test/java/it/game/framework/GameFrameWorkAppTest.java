@@ -3,6 +3,7 @@ package it.game.framework;
 import it.game.framework.builders.StepBuilder;
 import it.game.framework.builders.YamlBuilder;
 import it.game.framework.contexts.GameContext;
+import it.game.framework.exceptions.ExceptionLibrary;
 import it.game.framework.executors.GameExecutor;
 import it.game.framework.executors.SteppedExecutor;
 import it.game.framework.executors.library.TimingCallback;
@@ -79,20 +80,19 @@ public class GameFrameWorkAppTest {
 
         StepBuilder.builder(machine)
                 .addStartingState(load)
-                .addTrueConnectionFromLastState(spin)
+                .addDirectConnectionFromLastState(spin)
                 .addGameState(spin)
                 .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, calcFree)
                 .addConnectionFromLastState("fs=0", (c) -> c.<Integer>get("fs") == 0, calcNorm)
                 .addGameState(calcNorm)
                 .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, spin)
-                .addTrueConnectionFromLastState(update)
+                .addDirectConnectionFromLastState(update)
                 .addGameState(calcFree)
                 .addConnectionFromLastState("fs>0", (c) -> c.<Integer>get("fs") > 0, spin)
-                .addTrueConnectionFromLastState(update)
+                .addDirectConnectionFromLastState(update)
                 .addGameState(update)
+                .addGlobalConnection("fs<0", (c) -> c.<Integer>get("fs") < 0, update)
                 .build();
-
-
     }
 
     @Autowired
@@ -130,7 +130,7 @@ public class GameFrameWorkAppTest {
 
         gameExecutor.setStateMachine(machine);
         gameExecutor.setContext(null);
-        gameExecutor.setCallback(timingMonitor);
+        gameExecutor.setCallbacks(timingMonitor);
 
         System.out.println("Total execution: " + timingMonitor.getTotalExecution());
         System.out.println("Execution of stages:\n" + timingMonitor.getStateExecution().stream().map(v -> v.getClass() + "\t" + v.getKey()).collect(Collectors.joining("\n")));
@@ -143,6 +143,11 @@ public class GameFrameWorkAppTest {
 
         System.out.println(renderer.renderTree(m));
         renderer.renderGraph(m, "yamlBuilderTest");
+    }
+
+    @Test
+    public void TestRenderExceptions(){
+        System.out.println(ExceptionLibrary.printExceptions());
     }
 
 }

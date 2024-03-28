@@ -73,19 +73,19 @@ public abstract class GameContext {
     public abstract void cleanup();
 
     /**
-     * <u>This method is experimental</u><br>
      * This method gets a dao instance as argument, the argument dao
-     * has to be the dao of the data we want from the GameContext.
-     * This method process the argument dao by:<br>
+     * has to contain attributes with the same name of the data we want from the GameContext.
+     * <br><u><b>This method supports ONLY boxed/class types as variables of the dao class</b></u>
+     * <br>This method process the argument dao by:<br>
      * <ul>
-     *     <li>Lists all the filed of the dao with reflection, leaving warnings if field are not found or if are not convetible</li>
+     *     <li>Lists all the filed of the dao with reflection, leaving warnings if field are not found or if are not convertible</li>
      *     <li>Tries to populate the instance with data from the GameContext with the same name</li>
      *     <li>Returns the instance</li>
      * </ul>
      * The method populates only variables contained inside the
-     * parameter dao, and not hereditary ones. Also support better
-     * classes than primitive types.
-     *
+     * parameter dao, and not hereditary ones.
+     * <br><br><b>NOTE:</b> In case of conversion errors with number types, a solution is to
+     * force the type when are stored into the context(e.g. for floats 3.14f, for double 1.41429d, etc)
      * @param instance The dao class where store the files
      * @param <V>      The type of the dao class
      * @return An instance of the populated dao class

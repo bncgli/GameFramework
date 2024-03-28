@@ -89,13 +89,14 @@ public class StepBuilder {
      * This method creates and add a new GameStateConnection to
      * the lists of connections in the state machine with the
      * parameters passed by the user
+     *
      * @param expressionDescription Is a short description of the expression to show inside the machine's renderings
-     * @param expression The expression lambda that define the connection this lambda has one argument(the context) and returns a boolean
-     * @param startingState The state where the connection start from
-     * @param resultState The state where the connection ends to
+     * @param startingState         The state where the connection start from
+     * @param expression            The expression lambda that define the connection this lambda has one argument(the context) and returns a boolean
+     * @param resultState           The state where the connection ends to
      * @return This instance of teh StepBuilder
      */
-    public StepBuilder addConnection(String expressionDescription, Expression expression, GameState startingState, GameState resultState) {
+    public StepBuilder addConnection(String expressionDescription, GameState startingState, Expression expression,  GameState resultState) {
         return addConnection(
                 new GameStateConnection(
                         expressionDescription,
@@ -159,7 +160,7 @@ public class StepBuilder {
      * @return This instance of teh StepBuilder
      */
     public StepBuilder addConnectionFromLastState(String expressionDescription, Expression expression, GameState resultState) {
-        return addConnection(expressionDescription, expression, last, resultState);
+        return addConnection(expressionDescription, last, expression, resultState);
     }
 
     /**

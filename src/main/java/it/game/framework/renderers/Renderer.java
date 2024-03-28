@@ -3,7 +3,6 @@ package it.game.framework.renderers;
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.util.mxCellRenderer;
 import it.game.framework.statemachines.StateMachine;
-import it.game.framework.states.GameState;
 import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -27,24 +26,24 @@ public class Renderer {
      * the default is 1 (top to bottom),
      * an alternative is 7(left to right)
      */
-    private int orientation = 1;
+    private final int orientation;
     /**
      * Represents the horizontal spacing between cells.
      * The default value is 100, when condition descriptions
      * overlap is better to increase this value to make space
      * for them.
      */
-    private double horizontalSpacing = 100;
+    private final double horizontalSpacing;
     /**
      * Represents the vertical spacing between cells.
      * The default value is 50.
      */
-    private double verticalSpacing = 50;
+    private final double verticalSpacing;
     /**
      * The scale of the rendered image.
      * The default scale is 3.
      */
-    private int graphScale = 3;
+    private final int graphScale;
 
     public Renderer(
             @Value("${game.framework.renderer.orientation}") String orientation,
@@ -82,14 +81,23 @@ public class Renderer {
 
     /**
      * Renders the machine as a tree
+     *
      * @param machine The state machine we want to render
      * @return A string that can be print representing the state machine as a tree
      */
     public String renderTree(StateMachine machine) {
         StringBuilder res = new StringBuilder();
-        for (GameState s : machine.getStates()) {
-            res.append(s.ID()).append("\n");
-            machine.getConnectionsOf(s).forEach(v -> res.append("\t").append(v).append("\n"));
+        machine.getStates().forEach(s -> {
+                    res.append(s.ID()).append("\n");
+                    machine.getConnectionsOf(s).forEach(v -> {
+                        if (v.getStartingState() != null)
+                            res.append("\t").append(v).append("\n");
+                    });
+                }
+        );
+        if (!machine.getConnectionsOf(null).isEmpty()) {
+            res.append("\nGLOBALS").append("\n");
+            machine.getConnectionsOf(null).forEach(v -> res.append("\t").append(v).append("\n"));
         }
         return res.toString();
     }
@@ -105,13 +113,39 @@ public class Renderer {
     public void renderGraph(StateMachine machine, String filename) {
         DefaultDirectedGraph<String, ConditionEdge> graph = new DefaultDirectedGraph<>(ConditionEdge.class);
         machine.getStates().forEach(v -> graph.addVertex(v.ID()));
-        graph.addVertex("GLOBAL");
+        graph.addVertex("START");
+        graph.addEdge(
+                "START",
+                machine.getStartState().ID(),
+                new ConditionEdge(null)
+        );
+        graph.addVertex("EXIT");
         machine.getConnections().forEach(v -> {
-            graph.addEdge(
-                    v.getStartingState() == null ? "GLOBAL" : v.getStartingState().ID(),
-                    v.getResultState().ID(),
+            if (v.getStartingState() != null) {
+                graph.addEdge(
+                        v.getStartingState().ID(),
+                        v.getResultState() == null ? "EXIT" : v.getResultState().ID(),
+                        new ConditionEdge(v.getExpressionDescription())
+                );
+            }
+        });
+        if (!machine.getGlobalConnections().isEmpty()) {
+            graph.addVertex("GLOBAL");
+            machine.getGlobalConnections().forEach(v -> graph.addEdge(
+                    "GLOBAL",
+                    v.getResultState() == null ? "EXIT" : v.getResultState().ID(),
                     new ConditionEdge(v.getExpressionDescription())
-            );
+            ));
+        }
+        machine.getStates().forEach(v -> {
+            long count = machine.getConnectionsOf(v).stream().filter(k -> k.getStartingState() == v).count();
+            if (count == 0) {
+                graph.addEdge(
+                        v.ID(),
+                        "EXIT",
+                        new ConditionEdge(null)
+                );
+            }
         });
 
         JGraphXAdapter<String, ConditionEdge> graphAdapter = new JGraphXAdapter<>(graph);

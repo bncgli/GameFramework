@@ -45,6 +45,7 @@ public class ExceptionLibrary implements Serializable {
     /**
      * This method populates the ExceptionLibrary when
      * is called with known exceptions
+     *
      * @return The list of Exceptions Entries
      */
     private static List<Entry> init() {
@@ -57,7 +58,7 @@ public class ExceptionLibrary implements Serializable {
         e.add(new Entry("CONNECTION_STATE_IS_NOT_IN_MACHINE_STATES", 9103, "States in connection are not contained in the machine's states list"));
         e.add(new Entry("DIRECT_CONNECTION_IS_NOT_LAST", 9104, "A connection that returns always TRUE is not last, connections following this one are not reachable"));
         e.add(new Entry("DIRECT_CONNECTION_IN_GLOBALS", 9105, "A connection that returns always TRUE is in the global connections, connections following this one are not reachable"));
-        e.add(new Entry("CLASS_NAME_IS_A_KEYWORD",9106, "The class name is a keyword between GOTO, CATCH and EXIT, this is prohibited please change it"));
+        e.add(new Entry("CLASS_NAME_IS_A_KEYWORD", 9106, "The class name is a keyword between GOTO, CATCH and EXIT, this is prohibited please change it"));
 
         //Execution Exceptions
         e.add(new Entry("EXECUTION_EXCEPTION", 9200, "Machine execution exception"));
@@ -75,6 +76,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the list of the entries
+     *
      * @return The list of exception entries
      */
     private static List<Entry> exceptions() {
@@ -84,6 +86,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the Size of the exception library
+     *
      * @return The size of the library
      */
     public static int size() {
@@ -92,6 +95,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Check if the exception library is empty
+     *
      * @return True if the exception library is empty
      */
     public static boolean isEmpty() {
@@ -100,6 +104,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Checks if there is an exception with the given name
+     *
      * @param exceptionName The name of the exception to search
      * @return returns true if the exception is present inside the library
      */
@@ -109,6 +114,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Checks if there is an exception with the given hash
+     *
      * @param hash The hash of the exception to search
      * @return returns true if the exception is present inside the library
      */
@@ -118,6 +124,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the entry with the given name
+     *
      * @param exceptionName The name of the entry to return
      * @return The entry of the library with the given name
      */
@@ -127,6 +134,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the entry with the given hash
+     *
      * @param exceptionHash The hash of the entry to return
      * @return The entry of the library with the given hash
      */
@@ -137,8 +145,9 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Adds a new Exception Entry to the library
-     * @param name The name of the new exception to index it with
-     * @param hash The hash of the new exception
+     *
+     * @param name    The name of the new exception to index it with
+     * @param hash    The hash of the new exception
      * @param message The message of the new exception
      * @return True if the new exception is added with success, false otherwise
      */
@@ -151,6 +160,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the Set of names of all the entries of the library
+     *
      * @return The Set containing all the names of the entry in the library
      */
     public static Set<String> namesSet() {
@@ -159,6 +169,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the Set of Hashes of all the entries of the library
+     *
      * @return The Set containing all the hashes of the entry in the library
      */
     public static Set<Integer> hashSet() {
@@ -167,6 +178,7 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the collection of Messages of all the entries of the library
+     *
      * @return The collection containing all the messages of the entry in the library
      */
     public static Collection<String> messageList() {
@@ -175,9 +187,21 @@ public class ExceptionLibrary implements Serializable {
 
     /**
      * Returns the set of entries of the library
+     *
      * @return The set of entries of the library
      */
     public static Set<Entry> entrySet() {
         return new HashSet<>(exceptions());
+    }
+
+    /**
+     * Renders a formatted string with a table of all the exception entry currently into the library
+     * @return A string formatted as a table with The hash, name and message columns
+     */
+    public static String printExceptions() {
+        StringBuilder ret = new StringBuilder();
+        ret.append(String.format("| %4s | %-50s | %s%n", "HASH", "NAME", "MESSAGE"));
+        exceptions().forEach(e -> ret.append(String.format("| %4s | %-50s | %s%n", e.getHash(), e.getName(), e.getMessage())));
+        return ret.toString();
     }
 }

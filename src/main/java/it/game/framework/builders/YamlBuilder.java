@@ -100,11 +100,12 @@ public class YamlBuilder {
     public void build() {
         InputStream inputStream;
         try {
+            log.info("Reading file {}", yamlPath);
             inputStream = new FileInputStream(yamlPath);
             Yaml yaml = new Yaml(new Constructor(Machine.class));
             Machine data = yaml.load(inputStream);
             generateMachine(data);
-
+            log.info("Machine built!");
         } catch (Exception e) {
             log.error(GameException.format(e));
         }
@@ -120,17 +121,23 @@ public class YamlBuilder {
      * @throws Exception The building exception emerged from the building process
      */
     private void generateMachine(Machine machine) throws Exception {
+        log.info("Start generating machine from yaml");
         Map<String, GameState> refs = new HashMap<>();
         refs.put("EXIT", null);
         refs.put("exit", null);
+        log.info("Instantiating GameStates from classes");
         for (State s : machine.states) {
             String name = s.name;
             if(keywordList.contains(name)) throw new GameException(ExceptionLibrary.get("CLASS_NAME_IS_A_KEYWORD"));
             GameState state = instantiate(s.classname);
             refs.put(name, state);
             this.machine.getStates().add(state);
+            if(machine.states.indexOf(s) == 0){
+                this.machine.setStartState(state);
+            }
         }
 
+        log.info("Generating connections and lambdas from strings ");
         LambdaFactory factory = LambdaFactory.get();
         for (State s : machine.states) {
             if (s.connections == null) continue;
@@ -139,7 +146,7 @@ public class YamlBuilder {
                 this.machine.getConnections().add(connection);
             }
         }
-
+        log.info("Generating global connections and lambdas from strings ");
         if (machine.globals != null) {
             for (Connection c : machine.globals) {
                 GameStateConnection connection = getConnection(null, c, refs, factory);

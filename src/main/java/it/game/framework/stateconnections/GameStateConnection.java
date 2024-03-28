@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * This class contains the connections from a GameState to another
@@ -30,6 +31,7 @@ public class GameStateConnection implements Serializable {
 
     /**
      * Calculate and returns the result of the expression
+     *
      * @param c The GameContext
      * @return True or false depending of the expression's formula
      * @throws Exception
@@ -41,9 +43,10 @@ public class GameStateConnection implements Serializable {
     @Override
     public String toString() {
         return String.format("[Condition: %s -> %s%s]",
-                startingState.getName(),
-                expressionDescription == null ? "" : expressionDescription + " -> ",
-                resultState.getName()
+                startingState == null ? "GLOBAL" : startingState.getName(),
+                expressionDescription == null || expressionDescription.isEmpty() ? "" : expressionDescription + " -> ",
+                resultState == null ? "EXIT" : resultState.getName()
         );
     }
+
 }
